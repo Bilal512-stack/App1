@@ -1,10 +1,10 @@
 {
   "expo": {
-   "name": "client-app1",
+    "name": "client-app1",
     "slug": "client-app1",
     "version": "1.0.0",
     "orientation": "portrait",
-      "scheme": "myapp",
+    "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -32,17 +32,19 @@
           "enableFullScreenImage_legacy": true
         }
       ],
-    [
-      "expo-font",
-      {
-        "fonts": [
-          "./assets/fonts/Outfit-bold.ttf",
-          "./assets/fonts/Outfit-Regular.ttf",
-          "./assets/fonts/Outfit-SemiBold.ttf"
-        ]
-      }
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Outfit-bold.ttf",
+            "./assets/fonts/Outfit-Regular.ttf",
+            "./assets/fonts/Outfit-SemiBold.ttf"
+          ]
+        }
+      ]
     ],
-
     "experiments": {
       "typedRoutes": true
-    },
+    }
+  }
+}

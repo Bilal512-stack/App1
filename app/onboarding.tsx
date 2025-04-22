@@ -39,7 +39,7 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#eae4e2',
                         image: (
                             <View style={styles.lottie}>
-                                <Image source={require('../assets/images/camion.mp4')}/>
+                                <Image source={require('../assets/images/2.jpg')}/>
                             </View>
                         ),
                         title: 'Votre Partenaire dans la recherche de vos transporteurs',
