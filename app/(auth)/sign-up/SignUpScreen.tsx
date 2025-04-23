@@ -14,6 +14,7 @@ const SignUpScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({
@@ -93,15 +94,19 @@ const SignUpScreen = () => {
           onChangeText={(value) => setEmail(value)}
         />
       </View>
-
-      <View style={{ marginTop: 30 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Mot de passe</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Entrez votre mot de passe'
-          secureTextEntry
-          onChangeText={(value) => setPassword(value)}
-        />
+      <View style={{ marginTop: 50 }}>
+        <Text style={{ fontFamily: 'outfit' }}>Password</Text>
+        <View style={styles.input}>
+          <TextInput
+            secureTextEntry={!showPassword} // Utilise l'état pour contrôler l'affichage
+            style={styles.input}
+            onChangeText={(value) => setPassword(value)}
+            placeholder='Enter Password'
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="gray" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <TouchableOpacity
@@ -132,6 +137,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginTop: 10,
+  },
+  eyeIcon: {
+    paddingLeft: 10,
   },
 });
 

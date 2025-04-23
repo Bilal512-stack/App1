@@ -13,6 +13,7 @@ const LoginScreen = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false }); // Fix header not hiding
@@ -30,6 +31,7 @@ const LoginScreen = () => {
       console.log(user);
       
       // Rediriger vers la page d'accueil après une connexion réussie
+
       router.push('/home'); // Ajustez le chemin selon votre configuration
     } catch (error) {
       const errorCode = (error as any).code;
@@ -74,12 +76,17 @@ const LoginScreen = () => {
 
       <View style={{ marginTop: 50 }}>
         <Text style={{ fontFamily: 'outfit' }}>Password</Text>
-        <TextInput
-          secureTextEntry={true}
-          style={styles.input}
-          onChangeText={(value) => setPassword(value)}
-          placeholder='Enter Password'
-        />
+        <View style={styles.input}>
+          <TextInput
+            secureTextEntry={!showPassword} // Utilise l'état pour contrôler l'affichage
+            style={styles.input}
+            onChangeText={(value) => setPassword(value)}
+            placeholder='Enter Password'
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="gray" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <TouchableOpacity
@@ -117,6 +124,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginTop: 10,
+  },
+  eyeIcon: {
+    paddingLeft: 10,
   },
 });
 
