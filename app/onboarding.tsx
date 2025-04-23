@@ -17,7 +17,7 @@ export default function OnboardingSwiper() {
 
     const handleDone = ()=> {
         // @ts-ignore
-         router.push('/(auth)/WelcomeScreen');
+         router.push('/(auth)/sign-up/SignUpScreen');
 
     }
 
@@ -26,7 +26,7 @@ export default function OnboardingSwiper() {
         return (
             <TouchableOpacity style={styles.doneButton} onPress={ () => {
                 // @ts-ignore
-                router.push('/(auth)/WelcomeScreen');
+                router.push('/(auth)/sign-in/LoginScreen');
             }} >
             <Text>Done</Text>
             </TouchableOpacity>
@@ -46,7 +46,7 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Image source={require('../assets/animations/track.json')}/>
+                                <Image source={require('../assets/images/1.png')}/>
                             </View>
                         ),
                         title: 'Votre Partenaire dans la recherche de vos transporteurs',
@@ -56,7 +56,7 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Lottie source={require('../assets/animations/track.json')} autoPlay loop />
+                                <Lottie source={require('../assets/images/2.png')} autoPlay loop />
                             </View>
                         ),
                         title: 'Rapidité et Fiabilité',
@@ -66,7 +66,7 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Lottie source={require('../assets/animations/World.json')} autoPlay loop />
+                                <Lottie source={require('../assets/images/3.png')} autoPlay loop />
                             </View>
                         ),
                         title: 'Facilité d’Utilisation',

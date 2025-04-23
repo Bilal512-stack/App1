@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, ToastAndroid } from 'react-native'
 import React, {useEffect} from 'react'
 import { useNavigation }  from 'expo-router'
 import { TouchableOpacity } from 'react-native'
@@ -26,6 +26,12 @@ const SignUpScreen = () => {
 
 
   const onCreateAccount = () => {
+
+    if(!email || !password || !fullName) {
+      ToastAndroid.show('Please fill all fields', ToastAndroid.LONG);
+      return;
+    }
+
     createUserWithEmailAndPassword(auth, email, password)
   .then((userCredential) => {
     // Signed up 
@@ -50,36 +56,59 @@ const SignUpScreen = () => {
       <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
             <Text style={{
-        fontSize: 30,
-         fontFamily: 'outfit-bold',
-         marginTop: 20,}}>Create New Account</Text>
+                fontSize: 30,
+                fontFamily: 'outfit-bold',
+                marginTop: 10,
+                 }}>Create New Account</Text>
 
     <View style={{
-            marginTop: 50,
+            marginTop: 30,
             }}>
             <Text style={{
               fontFamily: 'outfit',  
             }}>Full Name</Text>
-            <TextInput style={styles.input} placeholder='Enter Full Name'/>
+            <TextInput style={styles.input} 
+            placeholder='Enter Full Name'
+            onChangeText={(value)=>setFullName(value)}/>
           </View>
     
     <View style={{
-            marginTop: 50,
+            marginTop: 30,
             }}>
             <Text style={{
               fontFamily: 'outfit',  
             }}>Email</Text>
-            <TextInput style={styles.input} placeholder='Enter Email'/>
+            <TextInput style={styles.input} 
+            placeholder='Enter Email'
+            onChangeText={(value)=>setEmail(value)}/>
           </View>
     
     <View style={{
-            marginTop: 50,
+            marginTop: 30,
             }}>
             <Text style={{
               fontFamily: 'outfit',  
             }}>Password</Text>
-            <TextInput style={styles.input} placeholder='Enter Password'/>
+            <TextInput style={styles.input}
+             placeholder='Enter Password'
+             onChangeText={(value)=>setPassword(value)}/>
           </View>
+
+          
+               <TouchableOpacity onPress={onCreateAccount}
+                style={{
+                padding:20,
+                marginTop: 60,
+                backgroundColor:'#000',
+                borderRadius: 15,
+                borderWidth: 1, 
+               }}>
+                 <Text style={{
+                  fontFamily: 'outfit',
+                  color: '#fff',
+                  textAlign: 'center',
+                 }}> Create Account</Text>
+               </TouchableOpacity>
     
          
     </View>
