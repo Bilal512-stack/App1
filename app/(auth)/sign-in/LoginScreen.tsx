@@ -35,13 +35,19 @@ const LoginScreen = () => {
   .then((userCredential) => {
     // Signed in 
     const user = userCredential.user;
+    console.log(user);
     // ...
   })
   .catch((error) => {
     const errorCode = error.code;
     const errorMessage = error.message;
-  });
+    console.log( errorMessage, errorCode);
+
+   if(errorCode === 'auth/invalid-credential'){
+    ToastAndroid.show('Invalid Credentials', ToastAndroid.LONG)
   }
+  });
+}
 
 
        return (

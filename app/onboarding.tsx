@@ -46,7 +46,12 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Image source={require('../assets/images/1.png')}/>
+                                <Image source={require('../assets/images/1.png')} style={{
+                                    width: 200,
+                                    height: 200,
+                                    resizeMode: 'contain',
+                                    marginTop: 50,
+                                }} />
                             </View>
                         ),
                         title: 'Votre Partenaire dans la recherche de vos transporteurs',
@@ -84,8 +89,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     image: {
-        width:480,
-        height:50,
+        width:10,
+        height:'50%',
 
 
     },
