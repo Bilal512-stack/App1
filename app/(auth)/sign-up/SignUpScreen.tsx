@@ -1,9 +1,8 @@
 import { View, Text, ToastAndroid } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigation } from 'expo-router';
 import { TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { auth } from './../../../config/FirebaseConfig';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
@@ -24,7 +23,7 @@ const SignUpScreen = () => {
 
   const onCreateAccount = async () => {
     if (!email || !password || !fullName) {
-      ToastAndroid.show('Please fill all fields', ToastAndroid.LONG);
+      ToastAndroid.show('Veuillez remplir tous les champs', ToastAndroid.LONG);
       return;
     }
 
@@ -35,6 +34,9 @@ const SignUpScreen = () => {
       // Envoi de l'email de vérification
       await sendEmailVerification(user);
       ToastAndroid.show('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.', ToastAndroid.LONG);
+
+      // Rediriger vers la page de connexion
+      router.push('/(auth)/sign-in/LoginScreen'); // Ajustez le chemin selon votre configuration de routage
     } catch (error) {
       const errorCode = (error as any).code;
       const errorMessage = (error as any).message;
@@ -42,11 +44,27 @@ const SignUpScreen = () => {
       console.log(errorMessage, errorCode);
 
       if (errorCode === 'auth/weak-password') {
-        ToastAndroid.show('Password should be at least 6 characters', ToastAndroid.LONG);
+        ToastAndroid.show('Le mot de passe doit comporter au moins 6 caractères', ToastAndroid.LONG);
       } else if (errorCode === 'auth/email-already-in-use') {
-        ToastAndroid.show('Email already in use', ToastAndroid.LONG);
+        ToastAndroid.show('L\'email est déjà utilisé', ToastAndroid.LONG);
       } else if (errorCode === 'auth/invalid-email') {
-        ToastAndroid.show('Invalid Email', ToastAndroid.LONG);
+        ToastAndroid.show('Email invalide', ToastAndroid.LONG);
+      }
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      try {
+        await sendEmailVerification(auth.currentUser);
+        ToastAndroid.show('Email de vérification renvoyé.', ToastAndroid.LONG);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.log(error.message);
+        } else {
+          console.log('An unknown error occurred');
+        }
+        ToastAndroid.show('Erreur lors de l\'envoi de l\'email de vérification.', ToastAndroid.LONG);
       }
     }
   };
@@ -56,13 +74,13 @@ const SignUpScreen = () => {
       <TouchableOpacity onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', marginTop: 10 }}>Create New Account</Text>
+      <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', marginTop: 10 }}>Créer un nouveau compte</Text>
 
       <View style={{ marginTop: 30 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Full Name</Text>
+        <Text style={{ fontFamily: 'outfit' }}>Nom complet</Text>
         <TextInput
           style={styles.input}
-          placeholder='Enter Full Name'
+          placeholder='Entrez votre nom complet'
           onChangeText={(value) => setFullName(value)}
         />
       </View>
@@ -71,16 +89,16 @@ const SignUpScreen = () => {
         <Text style={{ fontFamily: 'outfit' }}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder='Enter Email'
+          placeholder='Entrez votre email'
           onChangeText={(value) => setEmail(value)}
         />
       </View>
 
       <View style={{ marginTop: 30 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Password</Text>
+        <Text style={{ fontFamily: 'outfit' }}>Mot de passe</Text>
         <TextInput
           style={styles.input}
-          placeholder='Enter Password'
+          placeholder='Entrez votre mot de passe'
           secureTextEntry
           onChangeText={(value) => setPassword(value)}
         />
@@ -96,7 +114,11 @@ const SignUpScreen = () => {
           borderWidth: 1,
         }}
       >
-        <Text style={{ fontFamily: 'outfit', color: '#fff', textAlign: 'center' }}>Create Account</Text>
+        <Text style={{ fontFamily: 'outfit', color: '#fff', textAlign: 'center' }}>Créer un compte</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={resendVerificationEmail} style={{ marginTop: 20 }}>
+        <Text style={{ color: 'blue', textAlign: 'center' }}>Renvoyer l'email de vérification</Text>
       </TouchableOpacity>
     </View>
   );
