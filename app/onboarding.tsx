@@ -4,7 +4,10 @@ import {View, StyleSheet, Text, Dimensions, TouchableOpacity} from 'react-native
 import Lottie from 'lottie-react-native';
 import { useNavigation} from '@react-navigation/native';
 import {Image} from 'react-native';
+import {router, useRouter} from "expo-router";
 
+
+const Router = useRouter();
 
 const {width} = Dimensions.get('window');
 
@@ -14,14 +17,18 @@ export default function OnboardingSwiper() {
 
     const handleDone = ()=> {
         // @ts-ignore
-         navigation.navigate(`Login`);
+         router.push('/(auth)/WelcomeScreen');
 
     }
 
     const doneButton =  ({...props}) => {
+        // @ts-ignore
         return (
-            <TouchableOpacity style={styles.doneButton} {...props}>
-                <Text>Done</Text>
+            <TouchableOpacity style={styles.doneButton} onPress={ () => {
+                // @ts-ignore
+                router.push('/(auth)/WelcomeScreen');
+            }} >
+            <Text>Done</Text>
             </TouchableOpacity>
         )
     }
@@ -36,19 +43,19 @@ export default function OnboardingSwiper() {
                 containerStyles={{paddingHorizontal: 15}}
                 pages={[
                     {
-                        backgroundColor: '#eae4e2',
+                        backgroundColor: '#ffffff',
                         image: (
-                            <View style={styles.lottie}>
-                                <Image source={require('../assets/images/2.jpg')}/>
+                            <View style={styles.image}>
+                                <Image source={require('../assets/animations/track.json')}/>
                             </View>
                         ),
                         title: 'Votre Partenaire dans la recherche de vos transporteurs',
                         subtitle: 'Découvrez la simplicité de trouver le bon camion.',
                     },
                     {
-                        backgroundColor: '#e6e8ec',
+                        backgroundColor: '#ffffff',
                         image: (
-                            <View style={styles.lottie}>
+                            <View style={styles.image}>
                                 <Lottie source={require('../assets/animations/track.json')} autoPlay loop />
                             </View>
                         ),
@@ -56,9 +63,9 @@ export default function OnboardingSwiper() {
                         subtitle: 'Accédez à des transporteurs de confiance.',
                     },
                     {
-                        backgroundColor: '#eae4e4',
+                        backgroundColor: '#ffffff',
                         image: (
-                            <View style={styles.lottie}>
+                            <View style={styles.image}>
                                 <Lottie source={require('../assets/animations/World.json')} autoPlay loop />
                             </View>
                         ),
@@ -76,9 +83,10 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    lottie: {
-        width:width * 0.9,
-        height:350,
+    image: {
+        width:480,
+        height:50,
+
 
     },
     doneButton: {
