@@ -69,7 +69,7 @@ const LoginScreen = () => {
         You've been missed
       </Text>
 
-      <View style={{ marginTop: 50 }}>
+      <View style={{ marginTop: 20 }}>
         <Text style={{ fontFamily: 'outfit' }}>Email</Text>
         <TextInput
           style={styles.input}

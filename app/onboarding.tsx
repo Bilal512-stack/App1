@@ -46,12 +46,8 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Image source={require('../assets/images/1.png')} style={{
-                                    width: 200,
-                                    height: 200,
-                                    resizeMode: 'contain',
-                                    marginTop: 50,
-                                }} />
+                                <Image source={require('../assets/images/1.png')}                        
+                               />
                             </View>
                         ),
                         title: 'Votre Partenaire dans la recherche de vos transporteurs',
@@ -88,16 +84,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    image: {
-        width:10,
-        height:'50%',
-
-
-    },
     doneButton: {
         padding: 20,
-     //   backgroundColor: '#fff',
-      //  borderTopLeftRadius: '100%',
-       // borderBottomLeftRadius: '100%',
+         backgroundColor: '#fff',
+        borderTopLeftRadius: 100, 
+        borderBottomLeftRadius: 100, 
+    },
+    image: {
+        width: 100,
+        height:100,
+        resizeMode: 'cover',
+        marginTop: 50,
     }
 });
