@@ -75,13 +75,13 @@ const SignUpScreen = () => {
       <TouchableOpacity onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', marginTop: 10 }}>Créer un nouveau compte</Text>
+      <Text style={{ fontSize: 30, fontFamily: 'outfit-Bold', marginTop: 10 }}>Create New Account</Text>
 
       <View style={{ marginTop: 30 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Nom complet</Text>
+        <Text style={{ fontFamily: 'outfit' }}>Full Name</Text>
         <TextInput
           style={styles.input}
-          placeholder='Entrez votre nom complet'
+          placeholder='FullName'
           onChangeText={(value) => setFullName(value)}
         />
       </View>
@@ -90,18 +90,18 @@ const SignUpScreen = () => {
         <Text style={{ fontFamily: 'outfit' }}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder='Entrez votre email'
+          placeholder='Enter your email'
           onChangeText={(value) => setEmail(value)}
         />
       </View>
       <View style={{ marginTop: 50 }}>
         <Text style={{ fontFamily: 'outfit' }}>Password</Text>
-        <View style={styles.input}>
+        <View style={styles.passwordContainer}>
           <TextInput
             secureTextEntry={!showPassword} // Utilise l'état pour contrôler l'affichage
-            style={styles.input}
+            style={styles.passwordInput}
             onChangeText={(value) => setPassword(value)}
-            placeholder='Enter Password'
+            placeholder='Enter your Password'
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
             <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="gray" />
@@ -132,14 +132,37 @@ const SignUpScreen = () => {
 const styles = StyleSheet.create({
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor:'gray',
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
-    marginTop: 10,
+    marginTop: 15,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 5,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+    borderColor: 'gray',
+    paddingHorizontal: 10,
+     
   },
   eyeIcon: {
-    paddingLeft: 10,
+    height: 40,
+    justifyContent: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
+    borderColor: 'gray',
+    
+   
+   
+        
   },
 });
 

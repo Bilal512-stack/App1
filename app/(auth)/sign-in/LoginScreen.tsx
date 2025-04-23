@@ -31,7 +31,6 @@ const LoginScreen = () => {
       console.log(user);
       
       // Rediriger vers la page d'accueil après une connexion réussie
-
       router.push('/home'); // Ajustez le chemin selon votre configuration
     } catch (error) {
       const errorCode = (error as any).code;
@@ -50,18 +49,23 @@ const LoginScreen = () => {
     }
   };
 
+  const handleForgotPassword = () => {
+    // Rediriger l'utilisateur vers la page de réinitialisation du mot de passe
+    router.push('/(auth)/ForgotPasswordScreen'); // Ajustez le chemin selon votre configuration
+  };
+
   return (
     <View style={{ padding: 25, paddingTop: 80, backgroundColor: '#fff', height: '100%' }}>
       <TouchableOpacity onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', color: '#86808056' }}>
+      <Text style={{ fontSize: 40, fontFamily: 'outfit-Bold', color: '#000000F3' }}>
         Let's Sign You In!
       </Text>
-      <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', color: '#86808056' }}>
+      <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', color: '#232121B5' }}>
         Welcome Back
       </Text>
-      <Text style={{ fontSize: 30, fontFamily: 'outfit', color: '#86808056' }}>
+      <Text style={{ fontSize: 30, fontFamily: 'outfit', color: '#232121B5' }}>
         You've been missed
       </Text>
 
@@ -76,10 +80,10 @@ const LoginScreen = () => {
 
       <View style={{ marginTop: 50 }}>
         <Text style={{ fontFamily: 'outfit' }}>Password</Text>
-        <View style={styles.input}>
+        <View style={styles.passwordContainer}>
           <TextInput
             secureTextEntry={!showPassword} // Utilise l'état pour contrôler l'affichage
-            style={styles.input}
+            style={styles.passwordInput}
             onChangeText={(value) => setPassword(value)}
             placeholder='Enter Password'
           />
@@ -93,12 +97,21 @@ const LoginScreen = () => {
         onPress={onSignIn}
         style={{
           padding: 20,
-          marginTop: 20,
+          marginTop: 50,
           backgroundColor: '#000',
           borderRadius: 15,
           borderWidth: 1,
         }}>
         <Text style={{ fontFamily: 'outfit', color: '#fff', textAlign: 'center' }}>Sign In</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={handleForgotPassword}
+        style={{
+          marginTop: 10,
+          alignItems: 'center',
+        }}>
+        <Text style={{ color: '#000', fontFamily: 'outfit' }}>Mot de passe oublié ?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -110,7 +123,7 @@ const LoginScreen = () => {
           borderRadius: 15,
           borderWidth: 1,
         }}>
-        <Text style={{ color: '#000', fontFamily: 'outfit', textAlign: 'center' }}>Create Account</Text>
+        <Text style={{ color: '#000', fontFamily: 'outfit', textAlign: 'center' }}>Créer un compte</Text>
       </TouchableOpacity>
     </View>
   );
@@ -125,8 +138,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginTop: 10,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 5,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+    borderColor: 'gray',
+    paddingHorizontal: 10,
+  },
   eyeIcon: {
-    paddingLeft: 10,
+    height: 40,
+    justifyContent: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
+    borderColor: 'gray',
   },
 });
 
