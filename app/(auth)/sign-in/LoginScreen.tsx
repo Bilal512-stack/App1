@@ -5,6 +5,7 @@ import { useEffect} from 'react'
 import { useRouter } from 'expo-router'
 import { TextInput } from 'react-native'
 import { TouchableOpacity } from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -20,6 +21,9 @@ const LoginScreen = () => {
         backgroundColor: '#fff',
         height: '100%',
               }}>
+                <TouchableOpacity onPress={()=>router.back()}>
+      <Ionicons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
       <Text 
       style={{
         fontSize: 30, fontFamily: 'outfit-bold',color: '#86808056'}}>
