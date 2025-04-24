@@ -43,7 +43,7 @@ const Order = () => {
             </View>
 
             <TouchableOpacity
-                onPress={handleNext}
+                onPress={() => router.push('/create-order/page2')}
                 style={{
                     padding: 20,
                     marginTop: 50,
