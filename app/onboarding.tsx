@@ -87,7 +87,10 @@ const styles = StyleSheet.create({
     doneButton: {
         padding: 20,
          backgroundColor: '#fff',
-        borderTopLeftRadius: 100, 
+        borderWidth: 1, 
+        borderColor: '#000',
+        borderRadius: 100,
+        position: 'absolute',
         borderBottomLeftRadius: 100, 
     },
     image: {

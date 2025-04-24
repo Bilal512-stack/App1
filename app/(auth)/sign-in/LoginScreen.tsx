@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ToastAndroid } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { TextInput, TouchableOpacity } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -28,6 +28,7 @@ const LoginScreen = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      router.replace('/(tabs)/home'); // Rediriger vers la page d'accueil après une connexion réussie
       console.log(user);
       
       // Rediriger vers la page d'accueil après une connexion réussie

@@ -43,7 +43,8 @@
             "./assets/fonts/Outfit-SemiBold.ttf"
           ]
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

@@ -31,6 +31,8 @@ const SignUpScreen = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log(user);
+      router.replace('/(tabs)/home')
 
       // Envoi de l'email de vérification
       await sendEmailVerification(user);

@@ -1,7 +1,7 @@
 import {SplashScreen, Stack} from "expo-router";
 import './global.css';
 import {useFonts} from "expo-font";
-import {useEffect} from "react";
+import React, {useEffect} from "react";
 import "./global.css";
 
 
@@ -21,13 +21,13 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return  (
-     <Stack screenOptions={{
-       headerShown: false,
-     }}>
-         <Stack.Screen
-             name="(tabs)"
-             options={{headerShown: false}}
-         />
-         </Stack>
+    <Stack screenOptions={{
+        headerShown: false,
+      }}>
+          <Stack.Screen
+              name="(tabs)"
+              options={{headerShown: false}}
+          />
+          </Stack>
   );
 }
