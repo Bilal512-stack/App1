@@ -4,7 +4,11 @@ import Ionicons from '@expo/vector-icons/Ionicons'
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 const _Layout = () => {
     return (
-        <Tabs>
+        
+        <Tabs screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: 'black',
+            }}>
             <Tabs.Screen
             name="home"
             options={{

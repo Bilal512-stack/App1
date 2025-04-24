@@ -1,7 +1,6 @@
 import React from "react";
 import Onboarding from 'react-native-onboarding-swiper';
 import {View, StyleSheet, Text, Dimensions, TouchableOpacity} from 'react-native';
-import Lottie from 'lottie-react-native';
 import { useNavigation} from '@react-navigation/native';
 import {Image} from 'react-native';
 import {router, useRouter} from "expo-router";
@@ -57,7 +56,7 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Lottie source={require('../assets/images/2.png')} autoPlay loop />
+                                <Image source={require('../assets/images/2.png')} />
                             </View>
                         ),
                         title: 'Rapidité et Fiabilité',
@@ -67,7 +66,7 @@ export default function OnboardingSwiper() {
                         backgroundColor: '#ffffff',
                         image: (
                             <View style={styles.image}>
-                                <Lottie source={require('../assets/images/3.png')} autoPlay loop />
+                                <Image source={require('../assets/images/3.png')}/>
                             </View>
                         ),
                         title: 'Facilité d’Utilisation',
