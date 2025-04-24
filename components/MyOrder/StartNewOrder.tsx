@@ -3,8 +3,12 @@ import React from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { TouchableOpacity } from 'react-native'
+import { useRouter } from 'expo-router'
 
 export default function StartNewOrder() {
+  const route = useRouter();
+
+
   return (
     <View style={{
         padding: 20,
@@ -17,7 +21,7 @@ export default function StartNewOrder() {
         <FontAwesome name="folder-open" size={24} color="black" />
         <Text style={{
             fontSize: 25,
-            fontFamily: 'outfit-Medium',
+            fontFamily: 'outfit-SemiBold',
             }}>No Order Planned Yet</Text>
 
         <Text style={{
@@ -27,7 +31,8 @@ export default function StartNewOrder() {
             color: '#A0A0A0',
             }}>Time to pass a new order</Text>
 
-            <TouchableOpacity style={{
+            <TouchableOpacity onPress={() => route.push('/order')}
+             style={{
                 padding: 15,
                 backgroundColor: '#151414FF',
                 borderRadius: 15,
@@ -35,7 +40,7 @@ export default function StartNewOrder() {
             }}>
                 <Text style={{
                     fontSize: 17,
-                    fontFamily: 'outfit-Medium',
+                    fontFamily: 'outfit',
                     color: 'white',
                 }}>
                 Start a new order</Text>
