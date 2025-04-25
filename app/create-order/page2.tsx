@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
+import Constants from 'expo-constants'; // Assurez-vous que tout est configuré
 
+const opencageApiKey = Constants.manifest.extra.opencageApiKey;
 const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; truckType: string; }) => {
     const router = useRouter();
     const [senderName, setSenderName] = useState('');
@@ -54,8 +56,32 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
         fetchCountries();
     }, []);
 
-    const handleNext = () => {
-        router.push(`/create-order/page3?weight=${encodeURIComponent(weight)}&nature=${encodeURIComponent(nature)}&truckType=${encodeURIComponent(truckType)}&senderName=${encodeURIComponent(senderName)}&senderAddress=${encodeURIComponent(senderAddress)}&phoneSender=${encodeURIComponent(countryCode + phoneSender)}`);
+    const geocodeAddress = async (address: string) => {
+        try {
+            const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${OPENCAGE_API_KEY}`);
+            const data = await response.json();
+            if (data.results && data.results.length > 0) {
+                const { geometry } = data.results[0];
+                console.log('Coordonnées:', geometry.lat, geometry.lng);
+                return { lat: geometry.lat, lng: geometry.lng }; // Retourne les coordonnées
+            } else {
+                console.error('Aucune donnée trouvée pour cette adresse.');
+                return null;
+            }
+        } catch (error) {
+            console.error('Erreur lors de la géocodage:', error);
+            return null;
+        }
+    };
+
+    const handleNext = async () => {
+        const coords = await geocodeAddress(senderAddress); // Appelle la fonction de géocodage
+        if (coords) {
+            // Passer les coordonnées à la page suivante si nécessaire
+            router.push(`/create-order/page3?weight=${encodeURIComponent(weight)}&nature=${encodeURIComponent(nature)}&truckType=${encodeURIComponent(truckType)}&senderName=${encodeURIComponent(senderName)}&senderAddress=${encodeURIComponent(senderAddress)}&phoneSender=${encodeURIComponent(countryCode + phoneSender)}&lat=${coords.lat}&lng=${coords.lng}`);
+        } else {
+            alert('Erreur lors de la géocodage de l\'adresse, veuillez vérifier l\'adresse saisie.');
+        }
     };
 
     return (
@@ -116,15 +142,17 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        padding: 10,
         backgroundColor: '#fff',
+        marginTop: 100
     },
     inputContainer: {
         marginBottom: 20,
     },
     label: {
-        marginBottom: 5,
+        marginBottom: 15,
         fontSize: 16,
+        fontFamily: 'outfit'
     },
     input: {
         height: 40,
@@ -137,10 +165,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
+        padding: 15,
     },
     picker: {
-        height: 40,
-        width: 120,
+        height: 70,
+        width: 130,
         marginRight: 10,
     },
     phoneInput: {
