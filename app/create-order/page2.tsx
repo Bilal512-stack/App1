@@ -1,29 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
-type RootStackParamList = {
-    Page2: { weight: string; nature: string; truckType: string };
-    Page3: { weight: string; nature: string; truckType: string; senderName: string; senderAddress: string; recipientName: string; recipientAddress: string };
-};
-
-type Page2NavigationProp = StackNavigationProp<RootStackParamList, 'Page2'>;
-type Page2RouteProp = RouteProp<RootStackParamList, 'Page2'>;
-
-const Page2 = ({ navigation, route }: { navigation: Page2NavigationProp; route: Page2RouteProp }) => {
-    const { weight, nature, truckType } = route.params;
+const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; truckType: string; }) => {
+    const router = useRouter();
     const [senderName, setSenderName] = useState('');
     const [senderAddress, setSenderAddress] = useState('');
     const [recipientName, setRecipientName] = useState('');
     const [recipientAddress, setRecipientAddress] = useState('');
 
     const handleNext = () => {
-        navigation.navigate('Page3', {
-            weight, nature, truckType,
-            senderName, senderAddress,
-            recipientName, recipientAddress
-        });
+        router.push(`/create-order/page3?weight=${encodeURIComponent(weight)}&nature=${encodeURIComponent(nature)}&truckType=${encodeURIComponent(truckType)}&senderName=${encodeURIComponent(senderName)}&senderAddress=${encodeURIComponent(senderAddress)}&recipientName=${encodeURIComponent(recipientName)}&recipientAddress=${encodeURIComponent(recipientAddress)}`);
     };
 
     return (
@@ -75,10 +62,12 @@ const Page2 = ({ navigation, route }: { navigation: Page2NavigationProp; route: 
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         padding: 20,
+        backgroundColor: '#fff',
     },
     inputContainer: {
-        marginBottom: 20, // Espace entre les champs
+        marginBottom: 20,
     },
     label: {
         marginBottom: 5,

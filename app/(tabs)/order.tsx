@@ -9,7 +9,7 @@ const Order = () => {
     const [truckType, setTruckType] = useState('');
 
     const handleNext = () => {
-        router.push('/create-order/page2', { weight, nature, truckType });
+        router.push(`/create-order/page2?weight=${weight}&nature=${nature}&truckType=${truckType}`);
     };
 
     return (
