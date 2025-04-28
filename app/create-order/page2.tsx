@@ -1,87 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import Constants from 'expo-constants'; // Assurez-vous que tout est configuré
+import Constants from 'expo-constants';
+import * as Location from 'expo-location';
+import MapView, { Marker } from 'react-native-maps'; // Importez react-native-maps
 
-const opencageApiKey = Constants.manifest.extra.opencageApiKey;
+const opencageApiKey = Constants.expoConfig?.extra?.opencageApiKey;
+console.log('Opencage API Key:', opencageApiKey);
+
 const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; truckType: string; }) => {
     const router = useRouter();
     const [senderName, setSenderName] = useState('');
     const [senderAddress, setSenderAddress] = useState('');
     const [phoneSender, setPhoneSender] = useState('');
-    const [countryCode, setCountryCode] = useState('+237'); // Code par défaut (Cameroun)
+    const [countryCode, setCountryCode] = useState('+237');
     const [countryCodes, setCountryCodes] = useState<{ name: string; code: string; flag: string }[]>([]);
-    const [loading, setLoading] = useState(true); // État de chargement
+    const [loading, setLoading] = useState(true);
+    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [showMap, setShowMap] = useState(false); // État pour afficher ou masquer la carte
 
+    // Demander les permissions de localisation
     useEffect(() => {
-        const fetchCountries = async () => {
-            try {
-                const response = await fetch('https://countries.trevorblades.com/graphql', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query: `
-                            {
-                                countries {
-                                    name
-                                    code
-                                    phone
-                                    emoji
-                                }
-                            }
-                        `,
-                    }),
-                });
-                const { data } = await response.json();
-                if (data && data.countries) {
-                    const formattedData = data.countries.map(country => ({
-                        name: country.name,
-                        code: country.phone,
-                        flag: country.emoji, // Utilisation d'emoji pour le drapeau
-                    }));
-                    setCountryCodes(formattedData);
-                } else {
-                    console.error('Format de données inattendu:', data);
-                }
-            } catch (error) {
-                console.error('Erreur lors de la récupération des pays:', error);
-            } finally {
-                setLoading(false); // Fin du chargement
+        const requestLocationPermission = async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission refusée', 'La permission de localisation est nécessaire pour continuer.');
+                return;
             }
+
+            // Obtenez la position actuelle
+            const currentLocation = await Location.getCurrentPositionAsync({});
+            setLocation({
+                lat: currentLocation.coords.latitude,
+                lng: currentLocation.coords.longitude,
+            });
         };
 
-        fetchCountries();
+        requestLocationPermission();
     }, []);
 
-    const geocodeAddress = async (address: string) => {
-        try {
-            const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(address)}&key=${OPENCAGE_API_KEY}`);
-            const data = await response.json();
-            if (data.results && data.results.length > 0) {
-                const { geometry } = data.results[0];
-                console.log('Coordonnées:', geometry.lat, geometry.lng);
-                return { lat: geometry.lat, lng: geometry.lng }; // Retourne les coordonnées
-            } else {
-                console.error('Aucune donnée trouvée pour cette adresse.');
-                return null;
-            }
-        } catch (error) {
-            console.error('Erreur lors de la géocodage:', error);
-            return null;
-        }
+    const handleAddressPress = () => {
+        setShowMap(true); // Affiche la carte lorsque l'utilisateur clique sur l'adresse
     };
 
-    const handleNext = async () => {
-        const coords = await geocodeAddress(senderAddress); // Appelle la fonction de géocodage
-        if (coords) {
-            // Passer les coordonnées à la page suivante si nécessaire
-            router.push(`/create-order/page3?weight=${encodeURIComponent(weight)}&nature=${encodeURIComponent(nature)}&truckType=${encodeURIComponent(truckType)}&senderName=${encodeURIComponent(senderName)}&senderAddress=${encodeURIComponent(senderAddress)}&phoneSender=${encodeURIComponent(countryCode + phoneSender)}&lat=${coords.lat}&lng=${coords.lng}`);
-        } else {
-            alert('Erreur lors de la géocodage de l\'adresse, veuillez vérifier l\'adresse saisie.');
-        }
+    const handleMapClose = () => {
+        setShowMap(false); // Ferme la carte
+    };
+
+    const handleMapSelect = (coordinate: { latitude: number; longitude: number }) => {
+        setSenderAddress(`Lat: ${coordinate.latitude}, Lng: ${coordinate.longitude}`);
+        setShowMap(false); // Ferme la carte après la sélection
     };
 
     return (
@@ -100,7 +69,7 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                 <TextInput
                     style={styles.input}
                     value={senderAddress}
-                    onChangeText={setSenderAddress}
+                    onFocus={handleAddressPress} // Affiche la carte lorsque l'utilisateur clique sur l'adresse
                 />
             </View>
 
@@ -130,11 +99,42 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                 </View>
             </View>
 
-            <TouchableOpacity
-                onPress={handleNext}
-                style={styles.button}>
+            {location && (
+                <Text>Votre position actuelle : {location.lat}, {location.lng}</Text>
+            )}
+
+            <TouchableOpacity onPress={() => router.push('/create-order/page3')} style={styles.button}>
                 <Text style={styles.buttonText}>Suivant</Text>
             </TouchableOpacity>
+
+            {/* Modale pour afficher la carte */}
+            <Modal visible={showMap} animationType="slide">
+                <View style={styles.mapContainer}>
+                    <MapView
+                        style={styles.map}
+                        initialRegion={{
+                            latitude: location?.lat || 0,
+                            longitude: location?.lng || 0,
+                            latitudeDelta: 0.0922,
+                            longitudeDelta: 0.0421,
+                        }}
+                        onPress={(e) => handleMapSelect(e.nativeEvent.coordinate)}
+                    >
+                        {location && (
+                            <Marker
+                                coordinate={{
+                                    latitude: location.lat,
+                                    longitude: location.lng,
+                                }}
+                                title="Votre position"
+                            />
+                        )}
+                    </MapView>
+                    <TouchableOpacity onPress={handleMapClose} style={styles.closeButton}>
+                        <Text style={styles.closeButtonText}>Fermer</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 10,
         backgroundColor: '#fff',
-        marginTop: 100
+        marginTop: 100,
     },
     inputContainer: {
         marginBottom: 20,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     label: {
         marginBottom: 15,
         fontSize: 16,
-        fontFamily: 'outfit'
+        fontFamily: 'outfit',
     },
     input: {
         height: 40,
@@ -164,8 +164,6 @@ const styles = StyleSheet.create({
     phoneContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1,
-        padding: 15,
     },
     picker: {
         height: 70,
@@ -183,6 +181,25 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     buttonText: {
+        color: '#fff',
+        textAlign: 'center',
+    },
+    mapContainer: {
+        flex: 1,
+    },
+    map: {
+        flex: 1,
+    },
+    closeButton: {
+        position: 'absolute',
+        bottom: 20,
+        left: '50%',
+        transform: [{ translateX: -50 }],
+        backgroundColor: '#000',
+        padding: 10,
+        borderRadius: 5,
+    },
+    closeButtonText: {
         color: '#fff',
         textAlign: 'center',
     },

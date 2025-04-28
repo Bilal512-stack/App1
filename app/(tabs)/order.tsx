@@ -78,7 +78,7 @@ const Order = () => {
                         </Picker>
                     </View>
 
-                    <TouchableOpacity onPress={handleNext} style={styles.buttonNext}>
+                    <TouchableOpacity onPress={()=> router.push('/create-order/page2')} style={styles.buttonNext}>
                         <Text style={styles.buttonNextText}>Suivant</Text>
                     </TouchableOpacity>
                 </View></></>
