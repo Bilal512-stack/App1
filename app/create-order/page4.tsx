@@ -1,42 +1,50 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
 
-const Page4 = ({ weight, nature, truckType, senderName, senderAddress, recipientName, recipientAddress }: {
-    weight: string; 
-    nature: string; 
-    truckType: string; 
-    senderName: string; 
-    senderAddress: string; 
-    recipientName: string; 
-    recipientAddress: string;
-}) => {
+const Page4 = () => {
     const router = useRouter();
+    const {
+        weight,
+        nature,
+        truckType,
+        senderName,
+        senderAddress,
+        recipientName,
+        recipientAddress,
+    } = useLocalSearchParams();
 
-    const handleSubmit = () => {
-        // Logique pour soumettre la commande
-        console.log({
-            weight,
-            nature,
-            truckType,
-            senderName,
-            senderAddress,
-            recipientName,
-            recipientAddress,
-        });
-        // Naviguer vers une autre page ou afficher un message de confirmation
+    const handleSubmit = async () => {
+        try {
+            const response = await axios.post('http://YOUR_SERVER_URL/api/orders', {
+                weight,
+                nature,
+                truckType,
+                senderName,
+                senderAddress,
+                recipientName,
+                recipientAddress,
+            });
+            console.log(response.data);
+            Alert.alert('Commande soumise avec succès !');
+            router.push('/'); // Retour à la page d'accueil ou autre
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Erreur lors de la soumission de la commande');
+        }
     };
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Récapitulatif de la commande</Text>
-            <Text>Poids: {weight} kg</Text>
-            <Text>Nature: {nature}</Text>
-            <Text>Type de camion: {truckType}</Text>
-            <Text>Expéditeur: {senderName}</Text>
-            <Text>Adresse de l'expéditeur: {senderAddress}</Text>
-            <Text>Destinataire: {recipientName}</Text>
-            <Text>Adresse du destinataire: {recipientAddress}</Text>
+            <Text style={styles.info}>Poids : {weight} kg</Text>
+            <Text style={styles.info}>Nature : {nature}</Text>
+            <Text style={styles.info}>Type de camion : {truckType}</Text>
+            <Text style={styles.info}>Expéditeur : {senderName}</Text>
+            <Text style={styles.info}>Adresse de l'expéditeur : {senderAddress}</Text>
+            <Text style={styles.info}>Destinataire : {recipientName}</Text>
+            <Text style={styles.info}>Adresse du destinataire : {recipientAddress}</Text>
 
             <Button title="Soumettre la commande" onPress={handleSubmit} />
         </View>
@@ -50,8 +58,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     title: {
-        fontSize: 20,
-        marginBottom: 20,
+        padding: 20,
+        marginTop: 50,
+        backgroundColor: '#000',
+        borderRadius: 15,
+        borderWidth: 1,
+    },
+    info: {
+        fontSize: 16,
+        marginBottom: 10,
     },
 });
 

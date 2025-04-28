@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } fro
 import { useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import Constants from 'expo-constants';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps'; // Importez react-native-maps
 
@@ -54,7 +55,14 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
     };
 
     return (
-        <View style={styles.container}>
+        <>
+            <View style={{ padding: 15, paddingTop: 5, backgroundColor: '#fff' }}>
+                <TouchableOpacity>
+                    <Ionicons name="arrow-back" size={30} color="black"
+                        onPress={() => router.back()} style={{ marginTop: 50, marginLeft: 20 }} />
+                </TouchableOpacity>
+            </View>
+            <View style={styles.container}>
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>Nom de l'expéditeur</Text>
                 <TextInput
@@ -134,8 +142,9 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                         <Text style={styles.closeButtonText}>Fermer</Text>
                     </TouchableOpacity>
                 </View>
-            </Modal>
+        </Modal>
         </View>
+    </>
     );
 };
 
@@ -144,7 +153,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 10,
         backgroundColor: '#fff',
-        marginTop: 100,
+        marginTop: 0,
     },
     inputContainer: {
         marginBottom: 20,
