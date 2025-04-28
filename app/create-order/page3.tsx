@@ -111,7 +111,7 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                 <Text>Votre position actuelle : {location.lat}, {location.lng}</Text>
             )}
 
-            <TouchableOpacity onPress={() => router.push('/create-order/page4')} style={styles.button}>
+            <TouchableOpacity onPress={() => router.push('/create-order/review-order')} style={styles.button}>
                 <Text style={styles.buttonText}>Suivant</Text>
             </TouchableOpacity>
 

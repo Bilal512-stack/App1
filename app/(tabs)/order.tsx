@@ -10,7 +10,7 @@ const Order = () => {
     const router = useRouter();
     const [weight, setWeight] = useState(1); // Poids initialisé à 1
     const [nature, setNature] = useState('');
-    const [truckType, setTruckType] = useState(' Camion à Plateau'); // Type de camion par défaut
+    const [truckType, setTruckType] = useState(''); // Type de camion par défaut
 
     const handleNext = () => {
         router.push(`/create-order/page2?weight=${weight}&nature=${encodeURIComponent(nature)}&truckType=${encodeURIComponent(truckType)}`);
@@ -42,7 +42,7 @@ const Order = () => {
 
                     <View>
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Poids de la marchandise (kg)</Text>
+                            <Text style={styles.label}>Poids de la marchandise (tonnes)</Text>
                             <View style={styles.weightControls}>
                                 <TouchableOpacity onPress={decrementWeight} style={styles.button}>
                                     <Text style={styles.buttonText}>-</Text>
