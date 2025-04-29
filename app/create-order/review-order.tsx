@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
 import { DocumentData } from 'firebase/firestore';
 import { Entypo, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const ReviewOrder = () => {
+    const router = useRouter();
     const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
-    
-    
     const [orderData, setOrderData] = useState<DocumentData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -40,6 +39,19 @@ const ReviewOrder = () => {
 
         fetchOrderData();
     }, [orderId]);
+
+    const handleSubmit = () => {
+        Alert.alert(
+            'Succès',
+            'Commande soumise avec succès !',
+            [
+                {
+                    text: 'OK',
+                    onPress: () => router.push('/'), // Redirige vers la page d'accueil
+                },
+            ]
+        );
+    };
 
     if (loading) {
         return (
@@ -128,9 +140,11 @@ const ReviewOrder = () => {
                 <Text style={styles.label}>Recipient Phone</Text>
                 <Text style={styles.value}>{orderData.phoneRecipient}</Text>
             </View>
-             <TouchableOpacity onPressIn={() => console.log('Button pressed')} style={styles.button}>
-                                <Text style={styles.buttonText}>Soumettre la Commande</Text>
-                            </TouchableOpacity>
+
+            {/* Bouton pour soumettre la commande */}
+            <TouchableOpacity onPress={handleSubmit} style={styles.button}>
+                <Text style={styles.buttonText}>Soumettre la Commande</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -171,16 +185,16 @@ const styles = StyleSheet.create({
         flex: 2,
     },
     button: {
-      padding: 20,
-      marginTop: 10,
-      backgroundColor: '#000',
-      borderRadius: 15,
-      borderWidth: 1,
-  },
-  buttonText: {
-      color: '#fff',
-      textAlign: 'center',
-  },
+        padding: 20,
+        marginTop: 10,
+        backgroundColor: '#000',
+        borderRadius: 15,
+        borderWidth: 1,
+    },
+    buttonText: {
+        color: '#fff',
+        textAlign: 'center',
+    },
 });
 
 export default ReviewOrder;
