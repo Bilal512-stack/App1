@@ -93,9 +93,9 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 100, 
     },
     image: {
-        width: 100,
+        width: 10,
         height:100,
-        resizeMode: 'cover',
+        resizeMode: 'contain',
         marginTop: 50,
     }
 });

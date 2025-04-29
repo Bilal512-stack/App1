@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import Constants from 'expo-constants';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps'; // Importez react-native-maps
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig';
 
 const opencageApiKey = Constants.expoConfig?.extra?.opencageApiKey;
 console.log('Opencage API Key:', opencageApiKey);
 
 const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; truckType: string; }) => {
     const router = useRouter();
+    const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
     const [senderName, setSenderName] = useState('');
     const [senderAddress, setSenderAddress] = useState('');
     const [phoneSender, setPhoneSender] = useState('');
@@ -52,6 +55,34 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
     const handleMapSelect = (coordinate: { latitude: number; longitude: number }) => {
         setSenderAddress(`Lat: ${coordinate.latitude}, Lng: ${coordinate.longitude}`);
         setShowMap(false); // Ferme la carte après la sélection
+    };
+
+    const handleNext = async () => {
+        if (!orderId) {
+            Alert.alert('Erreur', 'ID de commande introuvable.');
+            return;
+        }
+
+        const recipientDetails = {
+            recipientName: senderName,
+            recipientAddress: senderAddress,
+            phoneRecipient: `${countryCode}${phoneSender}`,
+            location,
+        };
+
+        try {
+            if (typeof orderId !== 'string') {
+                Alert.alert('Erreur', 'ID de commande invalide.');
+                return;
+            }
+            const docRef = doc(db, 'orders', orderId); // Référence au document existant
+            await updateDoc(docRef, recipientDetails); // Met à jour les données dans Firebase
+            console.log('Données du destinataire mises à jour avec succès.');
+            router.push(`/create-order/review-order?orderId=${orderId}`); // Passe l'ID à ReviewOrder
+        } catch (e) {
+            console.error('Erreur lors de la mise à jour des données :', e);
+            Alert.alert('Erreur', 'Impossible de mettre à jour les données.');
+        }
     };
 
     return (
@@ -111,7 +142,7 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                 <Text>Votre position actuelle : {location.lat}, {location.lng}</Text>
             )}
 
-            <TouchableOpacity onPress={() => router.push('/create-order/review-order')} style={styles.button}>
+            <TouchableOpacity onPress={handleNext} style={styles.button}>
                 <Text style={styles.buttonText}>Suivant</Text>
             </TouchableOpacity>
 

@@ -1,215 +1,186 @@
-import { View, Text } from 'react-native'
-import React, { useContext, useEffect } from 'react'
-import { useNavigation } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons';
-import { CreateOrderContext } from '@/context/CreateOrderContext';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Entypo from '@expo/vector-icons/Entypo';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig';
+import { DocumentData } from 'firebase/firestore';
+import { Entypo, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
-export default function ReviewOrder(): JSX.Element {
-
-    const navigation=useNavigation();
-    const { orderData, setOrderData } = useContext(CreateOrderContext) || { orderData: null, setOrderData: () => {} }; // Provide fallback values
+const ReviewOrder = () => {
+    const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
+    
+    
+    const [orderData, setOrderData] = useState<DocumentData | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        navigation.setOptions({
-            headerShown: false,
-            headerTitle: ''
-            
-        });
-    }, [navigation]);
+        const fetchOrderData = async () => {
+            setLoading(true);
+            try {
+                if (!orderId) {
+                    Alert.alert('Erreur', 'ID de commande introuvable.');
+                    return;
+                }
 
+                const docRef = doc(db, 'orders', Array.isArray(orderId) ? orderId[0] : orderId);
+                const docSnap = await getDoc(docRef);
 
-  return (
-    <View style={{
-        padding: 15,
-        paddingTop: 20,
+                if (docSnap.exists()) {
+                    setOrderData(docSnap.data());
+                } else {
+                    Alert.alert('Erreur', 'Aucune commande trouvée pour cet ID.');
+                }
+            } catch (e) {
+                console.error('Erreur lors de la récupération des données :', e);
+                Alert.alert('Erreur', 'Impossible de récupérer les données.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrderData();
+    }, [orderId]);
+
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size="large" color="#000" />
+                <Text>Chargement des données...</Text>
+            </View>
+        );
+    }
+
+    if (!orderData) {
+        return (
+            <View style={styles.container}>
+                <Text>Aucune donnée disponible.</Text>
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Review your order</Text>
+
+            <Text style={styles.subtitle}>
+                Before you place your order, please review the details below to ensure everything is correct.
+            </Text>
+
+            {/* Poids */}
+            <View style={styles.row}>
+                <FontAwesome5 name="weight" size={24} color="black" />
+                <Text style={styles.label}>Weight</Text>
+                <Text style={styles.value}>{orderData.weight} tonnes</Text>
+            </View>
+
+            {/* Nature */}
+            <View style={styles.row}>
+                <FontAwesome5 name="product-hunt" size={24} color="black" />
+                <Text style={styles.label}>Nature</Text>
+                <Text style={styles.value}>{orderData.nature}</Text>
+            </View>
+
+            {/* Type de camion */}
+            <View style={styles.row}>
+                <FontAwesome5 name="truck-moving" size={24} color="black" />
+                <Text style={styles.label}>Truck Type</Text>
+                <Text style={styles.value}>{orderData.truckType}</Text>
+            </View>
+
+            {/* Expéditeur */}
+            <View style={styles.row}>
+                <Ionicons name="person" size={24} color="black" />
+                <Text style={styles.label}>Sender</Text>
+                <Text style={styles.value}>{orderData.senderName}</Text>
+            </View>
+
+            {/* Adresse de l'expéditeur */}
+            <View style={styles.row}>
+                <Entypo name="address" size={24} color="black" />
+                <Text style={styles.label}>Sender Address</Text>
+                <Text style={styles.value}>{orderData.senderAddress}</Text>
+            </View>
+
+            {/* Numéro de l'expéditeur */}
+            <View style={styles.row}>
+                <MaterialIcons name="numbers" size={24} color="black" />
+                <Text style={styles.label}>Sender Phone</Text>
+                <Text style={styles.value}>{orderData.phoneSender}</Text>
+            </View>
+
+            {/* Destinataire */}
+            <View style={styles.row}>
+                <Ionicons name="person" size={24} color="black" />
+                <Text style={styles.label}>Recipient</Text>
+                <Text style={styles.value}>{orderData.recipientName}</Text>
+            </View>
+
+            {/* Adresse du destinataire */}
+            <View style={styles.row}>
+                <Entypo name="address" size={24} color="black" />
+                <Text style={styles.label}>Recipient Address</Text>
+                <Text style={styles.value}>{orderData.recipientAddress}</Text>
+            </View>
+
+            {/* Numéro du destinataire */}
+            <View style={styles.row}>
+                <MaterialIcons name="numbers" size={24} color="black" />
+                <Text style={styles.label}>Recipient Phone</Text>
+                <Text style={styles.value}>{orderData.phoneRecipient}</Text>
+            </View>
+             <TouchableOpacity onPressIn={() => console.log('Button pressed')} style={styles.button}>
+                                <Text style={styles.buttonText}>Soumettre la Commande</Text>
+                            </TouchableOpacity>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 8,
         backgroundColor: '#fff',
-        height: '100%',
-    }}>
-      <Text style={{
-        fontFamily:'outfit-Bold',
-        fontSize: 25,
-        marginTop: 0,
-      }}>Review your order</Text>
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 16,
+        marginBottom: 20,
+        textAlign: 'center',
+        color: 'gray',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+        gap: 10,
+    },
+    label: {
+        fontSize: 18,
+        fontFamily: 'outfit',
+        color: 'gray',
+        flex: 1,
+    },
+    value: {
+        fontSize: 18,
+        fontFamily: 'outfit-SemiBold',
+        flex: 2,
+    },
+    button: {
+      padding: 20,
+      marginTop: 10,
+      backgroundColor: '#000',
+      borderRadius: 15,
+      borderWidth: 1,
+  },
+  buttonText: {
+      color: '#fff',
+      textAlign: 'center',
+  },
+});
 
-    <View style= {{
-      marginTop: 20,
-    }} >
-      <Text style={{
-        fontFamily:'outfit-SemiBold',
-       fontSize: 20,       
-      }}>
-        Before you place your order,
-         please review the details below to ensure everything is correct.
-      </Text>
-    </View>
-
-    <View style={{
-        marginTop: 18,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-       <FontAwesome5 name="weight" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Weight</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} tonnes
-        </Text>
-      </View>
- <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-       <FontAwesome5 name="product-hunt" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Nature</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight}   
-              </Text>
-      </View>
-
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-      <FontAwesome5 name="truck-moving" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Camion</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} 
-        </Text>
-      </View>
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-      <Ionicons name="person" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Expediteur</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} 
-        </Text>
-      </View>
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-       <Entypo name="address" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Adresse Expediteur</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} 
-        </Text>
-      </View>
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-      <MaterialIcons name="numbers" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Numero Expediteur</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} 
-        </Text>
-      </View>
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-      <Ionicons name="person" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Destinataire</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight}
-        </Text>
-      </View>
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-      <Entypo name="address" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Adresse Destinataire</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} 
-        </Text>
-      </View>
-      <View style={{
-        marginTop: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap:20
-      }}>
-       <MaterialIcons name="numbers" size={24} color="black" />
-        <Text style={{
-            fontFamily:'outfit',
-            fontSize: 20,
-            color: 'gray',
-        }}>Numero Destinataire</Text>
-        <Text style={{
-            fontFamily:'outfit-SemiBold',
-            fontSize: 20,                       
-        }}>{orderData?.weight?.weight} 
-        </Text>
-      </View>
-    </View>
-  )
-}
-
+export default ReviewOrder;

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import Constants from 'expo-constants';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps'; // Importez react-native-maps
+import MapView, { Marker } from 'react-native-maps';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig'; // Assurez-vous que le chemin est correct
 
-const opencageApiKey = Constants.expoConfig?.extra?.opencageApiKey;
-console.log('Opencage API Key:', opencageApiKey);
-
-const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; truckType: string; }) => {
+const Page2 = () => {
     const router = useRouter();
+    const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
     const [senderName, setSenderName] = useState('');
     const [senderAddress, setSenderAddress] = useState('');
     const [phoneSender, setPhoneSender] = useState('');
@@ -19,7 +19,7 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
     const [countryCodes, setCountryCodes] = useState<{ name: string; code: string; flag: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [showMap, setShowMap] = useState(false); // État pour afficher ou masquer la carte
+    const [showMap, setShowMap] = useState(false);
 
     // Demander les permissions de localisation
     useEffect(() => {
@@ -30,7 +30,6 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                 return;
             }
 
-            // Obtenez la position actuelle
             const currentLocation = await Location.getCurrentPositionAsync({});
             setLocation({
                 lat: currentLocation.coords.latitude,
@@ -42,109 +41,148 @@ const Page2 = ({ weight, nature, truckType }: { weight: string; nature: string; 
     }, []);
 
     const handleAddressPress = () => {
-        setShowMap(true); // Affiche la carte lorsque l'utilisateur clique sur l'adresse
+        setShowMap(true);
     };
 
     const handleMapClose = () => {
-        setShowMap(false); // Ferme la carte
+        setShowMap(false);
     };
 
     const handleMapSelect = (coordinate: { latitude: number; longitude: number }) => {
         setSenderAddress(`Lat: ${coordinate.latitude}, Lng: ${coordinate.longitude}`);
-        setShowMap(false); // Ferme la carte après la sélection
+        setShowMap(false);
+    };
+
+    const handleNext = async () => {
+        if (!orderId) {
+            Alert.alert('Erreur', 'ID de commande introuvable.');
+            return;
+        }
+
+        const senderDetails = {
+            senderName,
+            senderAddress,
+            phoneSender: `${countryCode}${phoneSender}`,
+            location,
+        };
+
+        try {
+            if (typeof orderId !== 'string') {
+                Alert.alert('Erreur', 'ID de commande invalide.');
+                return;
+            }
+            const docRef = doc(db, 'orders', orderId); // Référence au document existant
+            await updateDoc(docRef, senderDetails); // Met à jour les données dans Firebase
+            console.log('Données de l\'expéditeur mises à jour avec succès.');
+            router.push(`/create-order/page3?orderId=${orderId}`); // Passe l'ID à Page3
+        } catch (e) {
+            console.error('Erreur lors de la mise à jour des données :', e);
+            Alert.alert('Erreur', 'Impossible de mettre à jour les données.');
+        }
     };
 
     return (
         <>
             <View style={{ padding: 15, paddingTop: 5, backgroundColor: '#fff' }}>
                 <TouchableOpacity>
-                    <Ionicons name="arrow-back" size={30} color="black"
-                        onPress={() => router.back()} style={{ marginTop: 50, marginLeft: 20 }} />
+                    <Ionicons
+                        name="arrow-back"
+                        size={30}
+                        color="black"
+                        onPress={() => router.back()}
+                        style={{ marginTop: 50, marginLeft: 20 }}
+                    />
                 </TouchableOpacity>
             </View>
             <View style={styles.container}>
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Nom de l'expéditeur</Text>
-                <TextInput
-                    style={styles.input}
-                    value={senderName}
-                    onChangeText={setSenderName}
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Adresse de l'expéditeur</Text>
-                <TextInput
-                    style={styles.input}
-                    value={senderAddress}
-                    onFocus={handleAddressPress} // Affiche la carte lorsque l'utilisateur clique sur l'adresse
-                />
-            </View>
-
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Numéro de l'expéditeur</Text>
-                <View style={styles.phoneContainer}>
-                    {loading ? (
-                        <Text>Chargement des pays...</Text>
-                    ) : (
-                        <Picker
-                            selectedValue={countryCode}
-                            style={styles.picker}
-                            onValueChange={(itemValue) => setCountryCode(itemValue)}
-                        >
-                            {countryCodes.map((country) => (
-                                <Picker.Item key={country.code} label={`${country.flag} ${country.name} (${country.code})`} value={country.code} />
-                            ))}
-                        </Picker>
-                    )}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Nom de l'expéditeur</Text>
                     <TextInput
-                        style={[styles.input, styles.phoneInput]}
-                        value={phoneSender}
-                        onChangeText={setPhoneSender}
-                        keyboardType="phone-pad"
-                        placeholder="Numéro de téléphone"
+                        style={styles.input}
+                        value={senderName}
+                        onChangeText={setSenderName}
                     />
                 </View>
-            </View>
 
-            {location && (
-                <Text>Votre position actuelle : {location.lat}, {location.lng}</Text>
-            )}
-
-            <TouchableOpacity onPress={() => router.push('/create-order/page3')} style={styles.button}>
-                <Text style={styles.buttonText}>Suivant</Text>
-            </TouchableOpacity>
-
-            {/* Modale pour afficher la carte */}
-            <Modal visible={showMap} animationType="slide">
-                <View style={styles.mapContainer}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: location?.lat || 0,
-                            longitude: location?.lng || 0,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421,
-                        }}
-                        onPress={(e) => handleMapSelect(e.nativeEvent.coordinate)}
-                    >
-                        {location && (
-                            <Marker
-                                coordinate={{
-                                    latitude: location.lat,
-                                    longitude: location.lng,
-                                }}
-                                title="Votre position"
-                            />
-                        )}
-                    </MapView>
-                    <TouchableOpacity onPress={handleMapClose} style={styles.closeButton}>
-                        <Text style={styles.closeButtonText}>Fermer</Text>
-                    </TouchableOpacity>
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Adresse de l'expéditeur</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={senderAddress}
+                        onFocus={handleAddressPress}
+                    />
                 </View>
-        </Modal>
-        </View>
-    </>
+
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Numéro de l'expéditeur</Text>
+                    <View style={styles.phoneContainer}>
+                        {loading ? (
+                            <Text>Chargement des pays...</Text>
+                        ) : (
+                            <Picker
+                                selectedValue={countryCode}
+                                style={styles.picker}
+                                onValueChange={(itemValue) => setCountryCode(itemValue)}
+                            >
+                                {countryCodes.map((country) => (
+                                    <Picker.Item
+                                        key={country.code}
+                                        label={`${country.flag} ${country.name} (${country.code})`}
+                                        value={country.code}
+                                    />
+                                ))}
+                            </Picker>
+                        )}
+                        <TextInput
+                            style={[styles.input, styles.phoneInput]}
+                            value={phoneSender}
+                            onChangeText={setPhoneSender}
+                            keyboardType="phone-pad"
+                            placeholder="Numéro de téléphone"
+                        />
+                    </View>
+                </View>
+
+                {location && (
+                    <Text>
+                        Votre position actuelle : {location.lat}, {location.lng}
+                    </Text>
+                )}
+
+                <TouchableOpacity onPress={handleNext} style={styles.button}>
+                    <Text style={styles.buttonText}>Suivant</Text>
+                </TouchableOpacity>
+
+                {/* Modale pour afficher la carte */}
+                <Modal visible={showMap} animationType="slide">
+                    <View style={styles.mapContainer}>
+                        <MapView
+                            style={styles.map}
+                            initialRegion={{
+                                latitude: location?.lat || 0,
+                                longitude: location?.lng || 0,
+                                latitudeDelta: 0.0922,
+                                longitudeDelta: 0.0421,
+                            }}
+                            onPress={(e) => handleMapSelect(e.nativeEvent.coordinate)}
+                        >
+                            {location && (
+                                <Marker
+                                    coordinate={{
+                                        latitude: location.lat,
+                                        longitude: location.lng,
+                                    }}
+                                    title="Votre position"
+                                />
+                            )}
+                        </MapView>
+                        <TouchableOpacity onPress={handleMapClose} style={styles.closeButton}>
+                            <Text style={styles.closeButtonText}>Fermer</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Modal>
+            </View>
+        </>
     );
 };
 
