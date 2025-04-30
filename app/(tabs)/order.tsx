@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import { Tabs, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig';
+import { db, auth } from '../../config/FirebaseConfig';
 
 const Order = () => {
     const router = useRouter();
@@ -19,6 +19,7 @@ const Order = () => {
             weight,
             nature,
             truckType,
+            userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
         };
 
         try {

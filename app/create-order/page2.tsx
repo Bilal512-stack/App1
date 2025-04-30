@@ -7,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig'; // Assurez-vous que le chemin est correct
+import { db, auth } from '../../config/FirebaseConfig'; // Assurez-vous que le chemin est correct
 
 const Page2 = () => {
     const router = useRouter();
@@ -64,6 +64,7 @@ const Page2 = () => {
             senderAddress,
             phoneSender: `${countryCode}${phoneSender}`,
             location,
+            userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
         };
 
         try {

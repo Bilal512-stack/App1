@@ -7,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps'; // Importez react-native-maps
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig';
+import { auth, db } from '../../config/FirebaseConfig';
 
 const opencageApiKey = Constants.expoConfig?.extra?.opencageApiKey;
 console.log('Opencage API Key:', opencageApiKey);
@@ -68,6 +68,7 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
             recipientAddress: senderAddress,
             phoneRecipient: `${countryCode}${phoneSender}`,
             location,
+            userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
         };
 
         try {
