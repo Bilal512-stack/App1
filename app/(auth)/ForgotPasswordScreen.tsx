@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { auth } from '../../config/FirebaseConfig'; // Adjusted the path to match the likely correct location
 import { sendPasswordResetEmail } from 'firebase/auth';
 
+
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState('');
   const router = useRouter();
@@ -25,13 +26,14 @@ const ForgotPasswordScreen = () => {
   };
 
   return (
+
     <View style={styles.container}>
       <Text style={styles.title}>Réinitialiser le Mot de Passe</Text>
       <Text style={styles.subtitle}>Entrez votre adresse email</Text>
       <TextInput
         style={styles.input}
         onChangeText={(value) => setEmail(value)}
-        placeholder='Enter Email'
+        placeholder='votre Email'
       />
       <TouchableOpacity
         onPress={handleResetPassword}
@@ -55,12 +57,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   title: {
+    paddingBottom: 10,
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'outfit',
     marginBottom: 20,
   },
   subtitle: {
+    paddingBottom: 10,
     fontSize: 16,
+    fontFamily: 'outfit-Bold',
     marginBottom: 10,
   },
   input: {
@@ -72,6 +77,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
+    marginTop: 20,
     padding: 15,
     backgroundColor: '#000',
     borderRadius: 5,
@@ -82,7 +88,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   backButton: {
-    marginTop: 10,
+    marginTop: 40,
     alignItems: 'center',
   },
   backButtonText: {

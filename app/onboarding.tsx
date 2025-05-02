@@ -3,20 +3,20 @@ import Onboarding from 'react-native-onboarding-swiper';
 import {View, StyleSheet, Text, Dimensions, TouchableOpacity} from 'react-native';
 import { useNavigation} from '@react-navigation/native';
 import {Image} from 'react-native';
-import {router, useRouter} from "expo-router";
+import {useRouter} from "expo-router";
+import LottieView from 'lottie-react-native';
 
-
-const Router = useRouter();
 
 const {width} = Dimensions.get('window');
 
 export default function OnboardingSwiper() {
+    const router = useRouter();
 
     const navigation = useNavigation();
 
     const handleDone = ()=> {
         // @ts-ignore
-         router.push('/(auth)/sign-up/SignUpScreen');
+         router.push('/(auth)/sign-in/LoginScreen');
 
     }
 
@@ -27,7 +27,7 @@ export default function OnboardingSwiper() {
                 // @ts-ignore
                 router.push('/(auth)/sign-in/LoginScreen');
             }} >
-            <Text>Done</Text>
+            <Text style={{ fontFamily:'outfit-Bold',color: 'white' }}>Get Started</Text>
             </TouchableOpacity>
         )
     }
@@ -42,34 +42,48 @@ export default function OnboardingSwiper() {
                 containerStyles={{paddingHorizontal: 15}}
                 pages={[
                     {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: '#FFFFFFFF',
                         image: (
-                            <View style={styles.image}>
-                                <Image source={require('../assets/images/1.png')}                        
-                               />
+                            <View>
+                                <LottieView
+                               source={require('../assets/animations/colis.json')}
+                              autoPlay
+                             loop
+                             style={styles.animation1}
+                             />
                             </View>
                         ),
-                        title: 'Votre Partenaire dans la recherche de vos transporteurs',
+                        title : 'Optimisez Votre Transport en Toute Simplicité !',
                         subtitle: 'Découvrez la simplicité de trouver le bon camion.',
                     },
                     {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: '#29342C82',
                         image: (
-                            <View style={styles.image}>
-                                <Image source={require('../assets/images/2.png')} />
+                            <View>
+                                <LottieView
+                               source={require('../assets/animations/livraison.json')}
+                              autoPlay
+                             loop
+                             style={styles.animation}
+                             />
                             </View>
                         ),
-                        title: 'Rapidité et Fiabilité',
-                        subtitle: 'Accédez à des transporteurs de confiance.',
+                        title: 'Vitesse et Confiance pour Vos Livraisons',
+                        subtitle: 'Livrez vos marchandises en toute confiance.',
                     },
                     {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: '#252323FF',
                         image: (
-                            <View style={styles.image}>
-                                <Image source={require('../assets/images/3.png')}/>
+                            <View>
+                                 <LottieView
+                               source={require('../assets/animations/interface.json')}
+                              autoPlay
+                             loop
+                             style={styles.animation2}
+                             />
                             </View>
                         ),
-                        title: 'Facilité d’Utilisation',
+                        title: 'Simplifiez Votre Logistique avec Notre Plateforme',
                         subtitle: 'Une interface intuitive pour tous.',
                     }
                 ]}
@@ -77,25 +91,40 @@ export default function OnboardingSwiper() {
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor:'#FFFFFFFF' ,
+        fontFamily: 'outfit-Bold',
     },
-    doneButton: {
-        padding: 20,
-         backgroundColor: '#fff',
-        borderWidth: 1, 
-        borderColor: '#000',
-        borderRadius: 100,
-        position: 'absolute',
-        borderBottomLeftRadius: 100, 
-    },
-    image: {
-        width: 10,
-        height:100,
-        resizeMode: 'contain',
-        marginTop: 50,
-    }
+          doneButton: {
+          padding: 20,
+          backgroundColor: '#000',
+          borderWidth: 1,
+          borderColor: '#000',
+          borderRadius: 100,
+          position:'fixed' ,
+          borderBottomLeftRadius: 100,
+        },
+        animation: {
+            width: 300,
+            height: 300,
+        },
+        animation1: {
+            width: 350,
+            height: 300,
+        
+        },
+        animation2: {         
+            marginTop: 50,
+            width: 400,
+            height: 300,
+        },
+
 });
+
+
+
+
+
+

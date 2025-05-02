@@ -17,7 +17,7 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
     const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
     const [senderName, setSenderName] = useState('');
     const [senderAddress, setSenderAddress] = useState('');
-    const [phoneSender, setPhoneSender] = useState('');
+    const [senderPhone, setSenderPhone] = useState('');
     const [countryCode, setCountryCode] = useState('+237');
     const [countryCodes, setCountryCodes] = useState<{ name: string; code: string; flag: string }[]>([]);
     const [loading, setLoading] = useState(true);
@@ -66,7 +66,7 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
         const recipientDetails = {
             recipientName: senderName,
             recipientAddress: senderAddress,
-            phoneRecipient: `${countryCode}${phoneSender}`,
+            recipientPhone: `${countryCode}${senderPhone}`,
             location,
             userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
         };
@@ -131,8 +131,8 @@ const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; 
                     )}
                     <TextInput
                         style={[styles.input, styles.phoneInput]}
-                        value={phoneSender}
-                        onChangeText={setPhoneSender}
+                        value={senderPhone}
+                        onChangeText={setSenderPhone}
                         keyboardType="phone-pad"
                         placeholder="Numéro de téléphone"
                     />

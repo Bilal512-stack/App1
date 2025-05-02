@@ -14,7 +14,7 @@ const Page2 = () => {
     const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
     const [senderName, setSenderName] = useState('');
     const [senderAddress, setSenderAddress] = useState('');
-    const [phoneSender, setPhoneSender] = useState('');
+    const [senderPhone, setSenderPhone] = useState('');
     const [countryCode, setCountryCode] = useState('+237');
     const [countryCodes, setCountryCodes] = useState<{ name: string; code: string; flag: string }[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ const Page2 = () => {
         const senderDetails = {
             senderName,
             senderAddress,
-            phoneSender: `${countryCode}${phoneSender}`,
+            senderPhone: `${countryCode}${senderPhone}`,
             location,
             userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
         };
@@ -84,14 +84,14 @@ const Page2 = () => {
 
     return (
         <>
-            <View style={{ padding: 15, paddingTop: 5, backgroundColor: '#fff' }}>
+            <View style={{ padding: 0, paddingTop: 0, backgroundColor: '#fff' }}>
                 <TouchableOpacity>
                     <Ionicons
                         name="arrow-back"
                         size={30}
                         color="black"
                         onPress={() => router.back()}
-                        style={{ marginTop: 50, marginLeft: 20 }}
+                        style={{ marginTop: 70, marginLeft: 20 }}
                     />
                 </TouchableOpacity>
             </View>
@@ -136,8 +136,8 @@ const Page2 = () => {
                         )}
                         <TextInput
                             style={[styles.input, styles.phoneInput]}
-                            value={phoneSender}
-                            onChangeText={setPhoneSender}
+                            value={senderPhone}
+                            onChangeText={setSenderPhone}
                             keyboardType="phone-pad"
                             placeholder="Numéro de téléphone"
                         />
@@ -190,7 +190,7 @@ const Page2 = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
+        padding: 25,
         backgroundColor: '#fff',
         marginTop: 0,
     },
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     },
     button: {
         padding: 20,
-        marginTop: 50,
+        marginTop: 100,
         backgroundColor: '#000',
         borderRadius: 15,
         borderWidth: 1,

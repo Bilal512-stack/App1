@@ -65,9 +65,9 @@ const Order = () => {
                 tabBarActiveTintColor: 'black',
                 headerStyle: { backgroundColor: '#fff' },
             }}></Tabs>
-            <View style={{ padding: 15, paddingTop: 5, backgroundColor: '#fff' }}>
+            <View style={{ padding: 5, paddingTop: 5, backgroundColor: '#fff' }}>
                 <TouchableOpacity>
-                    <Ionicons name="arrow-back" size={30} color="black"
+                    <Ionicons name="arrow-back" size={24} color="black"
                         onPress={() => router.back()} style={{ marginTop: 50, marginLeft: 20 }} />
                 </TouchableOpacity>
             </View>
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: '#070707FF',
-        padding: 15,
+        padding: 10,
         borderRadius: 10,
         marginBottom: 25,
     },
@@ -145,7 +145,8 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     label: {
-        marginBottom: 10,
+        padding: 10,
+        marginBottom: 20,
         fontSize: 15,
         fontFamily: 'outfit',
     },

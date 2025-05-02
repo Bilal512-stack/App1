@@ -117,7 +117,7 @@ const ReviewOrder = () => {
             <View style={styles.row}>
                 <MaterialIcons name="numbers" size={24} color="black" />
                 <Text style={styles.label}>Sender Phone</Text>
-                <Text style={styles.value}>{orderData.phoneSender}</Text>
+                <Text style={styles.value}>{orderData.senderPhone}</Text>
             </View>
 
             {/* Destinataire */}
@@ -138,7 +138,7 @@ const ReviewOrder = () => {
             <View style={styles.row}>
                 <MaterialIcons name="numbers" size={24} color="black" />
                 <Text style={styles.label}>Recipient Phone</Text>
-                <Text style={styles.value}>{orderData.phoneRecipient}</Text>
+                <Text style={styles.value}>{orderData.recipientPhone}</Text>
             </View>
 
             {/* Bouton pour soumettre la commande */}

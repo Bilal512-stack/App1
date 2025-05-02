@@ -30,7 +30,7 @@ const LoginScreen = () => {
       const user = userCredential.user;
       router.replace('/(tabs)/home'); // Rediriger vers la page d'accueil après une connexion réussie
       console.log(user);
-      
+
       // Rediriger vers la page d'accueil après une connexion réussie
       router.push('/home'); // Ajustez le chemin selon votre configuration
     } catch (error) {
@@ -56,18 +56,18 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={{ padding: 25, paddingTop: 80, backgroundColor: '#fff', height: '100%' }}>
+    <View style={{ padding: 15, paddingTop: 40, backgroundColor:'#fff' , height: '100%' }}>
       <TouchableOpacity onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
       <Text style={{ fontSize: 40, fontFamily: 'outfit-Bold', color: '#000000F3' }}>
-        Let's Sign You In!
+        Connectez vous à votre compte 
       </Text>
       <Text style={{ fontSize: 30, fontFamily: 'outfit-bold', color: '#232121B5' }}>
-        Welcome Back
-      </Text>
+        Bon retour 
+        </Text>
       <Text style={{ fontSize: 30, fontFamily: 'outfit', color: '#232121B5' }}>
-        You've been missed
+        Vous nous avez manqué !
       </Text>
 
       <View style={{ marginTop: 20 }}>
@@ -75,18 +75,18 @@ const LoginScreen = () => {
         <TextInput
           style={styles.input}
           onChangeText={(value) => setEmail(value)}
-          placeholder='Enter Email'
+          placeholder='votre adresse email'
         />
       </View>
 
       <View style={{ marginTop: 50 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Password</Text>
+        <Text style={{ fontFamily: 'outfit' }}>Mot de passe</Text>
         <View style={styles.passwordContainer}>
           <TextInput
             secureTextEntry={!showPassword} // Utilise l'état pour contrôler l'affichage
             style={styles.passwordInput}
             onChangeText={(value) => setPassword(value)}
-            placeholder='Enter Password'
+            placeholder='votre mot de passe'
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
             <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="gray" />
@@ -103,7 +103,7 @@ const LoginScreen = () => {
           borderRadius: 15,
           borderWidth: 1,
         }}>
-        <Text style={{ fontFamily: 'outfit', color: '#fff', textAlign: 'center' }}>Sign In</Text>
+        <Text style={{ fontFamily: 'outfit', color: '#fff', textAlign: 'center' }}>Se Connecter</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

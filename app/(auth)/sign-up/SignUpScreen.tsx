@@ -73,37 +73,37 @@ const SignUpScreen = () => {
   };
 
   return (
-    <View style={{ padding: 25, paddingTop: 80, backgroundColor: '#fff', height: '100%' }}>
+    <View style={{ padding: 25, paddingTop: 40, backgroundColor: '#fff', height: '100%' }}>
       <TouchableOpacity onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      <Text style={{ fontSize: 30, fontFamily: 'outfit-Bold', marginTop: 10 }}>Create New Account</Text>
+      <Text style={{ fontSize: 30, fontFamily: 'outfit-Bold', marginTop: 10 }}>Créer un Compte</Text>
 
       <View style={{ marginTop: 30 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Full Name</Text>
+        <Text style={{ fontFamily: 'outfit-Bold' }}>Nom Complet</Text>
         <TextInput
           style={styles.input}
-          placeholder='FullName'
+          placeholder='Nom Complet'
           onChangeText={(value) => setFullName(value)}
         />
       </View>
 
       <View style={{ marginTop: 30 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Email</Text>
+        <Text style={{ fontFamily: 'outfit-Bold' }}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder='Enter your email'
+          placeholder='entrer une adresse email valide'
           onChangeText={(value) => setEmail(value)}
         />
       </View>
-      <View style={{ marginTop: 50 }}>
-        <Text style={{ fontFamily: 'outfit' }}>Password</Text>
+      <View style={{ marginTop: 40 }}>
+        <Text style={{ fontFamily: 'outfit-Bold' }}>Mot de Passe</Text>
         <View style={styles.passwordContainer}>
           <TextInput
             secureTextEntry={!showPassword} // Utilise l'état pour contrôler l'affichage
             style={styles.passwordInput}
             onChangeText={(value) => setPassword(value)}
-            placeholder='Enter your Password'
+            placeholder='entrer un mot de passe '
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
             <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="gray" />
@@ -124,8 +124,8 @@ const SignUpScreen = () => {
         <Text style={{ fontFamily: 'outfit', color: '#fff', textAlign: 'center' }}>Créer un compte</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={resendVerificationEmail} style={{ marginTop: 20 }}>
-        <Text style={{ color: 'blue', textAlign: 'center' }}>Renvoyer l'email de vérification</Text>
+      <TouchableOpacity onPress={resendVerificationEmail} style={{marginTop: 40 }}>
+        <Text style={{ color: 'black', textAlign: 'center' }}>Renvoyer l'email de vérification</Text>
       </TouchableOpacity>
     </View>
   );
@@ -161,10 +161,6 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     borderColor: 'gray',
-    
-   
-   
-        
   },
 });
 
