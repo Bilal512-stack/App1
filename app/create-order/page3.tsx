@@ -1,249 +1,446 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  Platform,
+  ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Map } from 'lucide-react-native';
 import { Picker } from '@react-native-picker/picker';
-import Constants from 'expo-constants';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps'; // Importez react-native-maps
 import { doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../config/FirebaseConfig';
+import { db, auth } from '../../config/FirebaseConfig';
+import { CountryCode } from '../../constants/CountryCodes';
+import LocationMap from '../../components/MyOrder/LocationMap';
 
-const opencageApiKey = Constants.expoConfig?.extra?.opencageApiKey;
-console.log('Opencage API Key:', opencageApiKey);
+export default function Page3() {
+  const router = useRouter();
+  const { orderId } = useLocalSearchParams();
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientAddress, setRecipientAddress] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+237');
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [formattedAddress, setFormattedAddress] = useState<string>('');
+  const [showMap, setShowMap] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [inputHasFocus, setInputHasFocus] = useState<string | null>(null);
+  const [formProgress, setFormProgress] = useState(0);
 
-const Page3 = ({ weight, nature, truckType }: { weight: string; nature: string; truckType: string; }) => {
-    const router = useRouter();
-    const { orderId } = useLocalSearchParams(); // Récupère l'ID de la commande depuis les paramètres
-    const [senderName, setSenderName] = useState('');
-    const [senderAddress, setSenderAddress] = useState('');
-    const [senderPhone, setSenderPhone] = useState('');
-    const [countryCode, setCountryCode] = useState('+237');
-    const [countryCodes, setCountryCodes] = useState<{ name: string; code: string; flag: string }[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [showMap, setShowMap] = useState(false); // État pour afficher ou masquer la carte
-
-    // Demander les permissions de localisation
-    useEffect(() => {
-        const requestLocationPermission = async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Permission refusée', 'La permission de localisation est nécessaire pour continuer.');
-                return;
-            }
-
-            // Obtenez la position actuelle
-            const currentLocation = await Location.getCurrentPositionAsync({});
-            setLocation({
-                lat: currentLocation.coords.latitude,
-                lng: currentLocation.coords.longitude,
-            });
-        };
-
-        requestLocationPermission();
-    }, []);
-
-    const handleAddressPress = () => {
-        setShowMap(true); // Affiche la carte lorsque l'utilisateur clique sur l'adresse
-    };
-
-    const handleMapClose = () => {
-        setShowMap(false); // Ferme la carte
-    };
-
-    const handleMapSelect = (coordinate: { latitude: number; longitude: number }) => {
-        setSenderAddress(`Lat: ${coordinate.latitude}, Lng: ${coordinate.longitude}`);
-        setShowMap(false); // Ferme la carte après la sélection
-    };
-
-    const handleNext = async () => {
-        if (!orderId) {
-            Alert.alert('Erreur', 'ID de commande introuvable.');
-            return;
+  // Get initial location
+  useEffect(() => {
+    const getInitialLocation = async () => {
+      setLoading(true);
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        
+        if (status === 'granted') {
+          const currentLocation = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Highest,
+          });
+          
+          const newLocation = {
+            latitude: currentLocation.coords.latitude,
+            longitude: currentLocation.coords.longitude,
+          };
+          
+          setLocation(newLocation);
+          
+          // Get address from coordinates
+          const addressResponse = await Location.reverseGeocodeAsync(newLocation);
+          
+          if (addressResponse && addressResponse.length > 0) {
+            const addressObj = addressResponse[0];
+            const address = [
+              addressObj.name,
+              addressObj.street,
+              addressObj.district,
+              addressObj.subregion,
+              addressObj.city,
+              addressObj.region,
+              addressObj.postalCode,
+              addressObj.country
+            ].filter(Boolean).join(', ');
+            
+            setRecipientAddress(address);
+            setFormattedAddress(address);
+          }
         }
-
-        const recipientDetails = {
-            recipientName: senderName,
-            recipientAddress: senderAddress,
-            recipientPhone: `${countryCode}${senderPhone}`,
-            location,
-            userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
-        };
-
-        try {
-            if (typeof orderId !== 'string') {
-                Alert.alert('Erreur', 'ID de commande invalide.');
-                return;
-            }
-            const docRef = doc(db, 'orders', orderId); // Référence au document existant
-            await updateDoc(docRef, recipientDetails); // Met à jour les données dans Firebase
-            console.log('Données du destinataire mises à jour avec succès.');
-            router.push(`/create-order/review-order?orderId=${orderId}`); // Passe l'ID à ReviewOrder
-        } catch (e) {
-            console.error('Erreur lors de la mise à jour des données :', e);
-            Alert.alert('Erreur', 'Impossible de mettre à jour les données.');
-        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return (
-        <>
-            <View style={{ padding: 15, paddingTop: 5, backgroundColor: '#fff' }}>
-                <TouchableOpacity>
-                    <Ionicons name="arrow-back" size={30} color="black"
-                        onPress={() => router.back()} style={{ marginTop: 50, marginLeft: 20 }} />
-                </TouchableOpacity>
-            </View>
-            <View style={styles.container}>
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Nom du destinataire </Text>
-                <TextInput
-                    style={styles.input}
-                    value={senderName}
-                    onChangeText={setSenderName}
-                />
-            </View>
+    getInitialLocation();
+  }, []);
+  
+  // Update form progress when fields change
+  useEffect(() => {
+    let progress = 0;
+    if (recipientName) progress += 0.33;
+    if (recipientAddress) progress += 0.33;
+    if (recipientPhone) progress += 0.34;
+    
+    setFormProgress(progress);
+  }, [recipientName, recipientAddress, recipientPhone]);
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Adresse du destinataire</Text>
-                <TextInput
-                    style={styles.input}
-                    value={senderAddress}
-                    onFocus={handleAddressPress} // Affiche la carte lorsque l'utilisateur clique sur l'adresse
-                />
-            </View>
+  const handleLocationSelect = ({
+    latitude,
+    longitude,
+    address,
+  }: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    setLocation({ latitude, longitude });
+    setRecipientAddress(address);
+    setFormattedAddress(address);
+    setShowMap(false);
+  };
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.label}>Numéro du destinataire</Text>
-                <View style={styles.phoneContainer}>
-                    {loading ? (
-                        <Text>Chargement des pays...</Text>
-                    ) : (
-                        <Picker
-                            selectedValue={countryCode}
-                            style={styles.picker}
-                            onValueChange={(itemValue) => setCountryCode(itemValue)}
-                        >
-                            {countryCodes.map((country) => (
-                                <Picker.Item key={country.code} label={`${country.flag} ${country.name} (${country.code})`} value={country.code} />
-                            ))}
-                        </Picker>
-                    )}
-                    <TextInput
-                        style={[styles.input, styles.phoneInput]}
-                        value={senderPhone}
-                        onChangeText={setSenderPhone}
-                        keyboardType="phone-pad"
-                        placeholder="Numéro de téléphone"
-                    />
-                </View>
-            </View>
+  const handleNext = async () => {
+    if (!orderId || typeof orderId !== 'string') {
+      alert('Invalid order ID. Please try again.');
+      return;
+    }
 
-            {location && (
-                <Text>Votre position actuelle : {location.lat}, {location.lng}</Text>
-            )}
+    if (!recipientName || !recipientAddress || !recipientPhone) {
+      alert('Please fill in all fields.');
+      return;
+    }
 
-            <TouchableOpacity onPress={handleNext} style={styles.button}>
-                <Text style={styles.buttonText}>Suivant</Text>
-            </TouchableOpacity>
+    setLoading(true);
+    try {
+      const fullPhoneNumber = `${countryCode}${recipientPhone}`;
+      const recipientDetails = {
+        recipientName,
+        recipientAddress,
+        recipientPhone: fullPhoneNumber,
+        location: location ? {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        } : null,
+        formattedAddress,
+        userEmail: auth.currentUser?.email,
+      };
 
-            {/* Modale pour afficher la carte */}
-            <Modal visible={showMap} animationType="slide">
-                <View style={styles.mapContainer}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: location?.lat || 0,
-                            longitude: location?.lng || 0,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421,
-                        }}
-                        onPress={(e) => handleMapSelect(e.nativeEvent.coordinate)}
-                    >
-                        {location && (
-                            <Marker
-                                coordinate={{
-                                    latitude: location.lat,
-                                    longitude: location.lng,
-                                }}
-                                title="Votre position"
-                            />
-                        )}
-                    </MapView>
-                    <TouchableOpacity onPress={handleMapClose} style={styles.closeButton}>
-                        <Text style={styles.closeButtonText}>Fermer</Text>
-                    </TouchableOpacity>
-                </View>
-        </Modal>
+      const docRef = doc(db, 'orders', orderId);
+      await updateDoc(docRef, recipientDetails);
+      console.log('Recipient details updated successfully');
+      
+      // Changed navigation to review-order page
+      router.push(`/create-order/review-order?orderId=${orderId}`);
+    } catch (error) {
+      console.error('Error updating recipient details:', error);
+      alert('Failed to update recipient details. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => router.back()} 
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <ArrowLeft size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Information sur le destinataire</Text>
         </View>
-    </>
-    );
-};
+
+        {/* Progress Indicator */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBarBackground}>
+            <View style={[styles.progressBarFill, { width: `${formProgress * 100}%` }]} />
+          </View>
+        </View>
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Nom du destinataire</Text>
+              <TextInput
+                style={[
+                  styles.input, 
+                  inputHasFocus === 'name' && styles.inputFocused
+                ]}
+                value={recipientName}
+                onChangeText={setRecipientName}
+                placeholder="Nom Complet"
+                onFocus={() => setInputHasFocus('name')}
+                onBlur={() => setInputHasFocus(null)}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Adresse du destinataire</Text>
+              <View style={styles.addressContainer}>
+                <TextInput
+                  style={[
+                    styles.addressInput,
+                    inputHasFocus === 'address' && styles.inputFocused
+                  ]}
+                  value={recipientAddress}
+                  onChangeText={setRecipientAddress}
+                  placeholder="Adresse"
+                  multiline
+                  onFocus={() => setInputHasFocus('address')}
+                  onBlur={() => setInputHasFocus(null)}
+                />
+                <TouchableOpacity 
+                  style={styles.mapButton}
+                  onPress={() => setShowMap(true)}
+                  activeOpacity={0.7}
+                >
+                  <Map size={20} color="#000" />
+                </TouchableOpacity>
+              </View>
+              {formattedAddress ? (
+                <View style={styles.currentAddressContainer}>
+                  <Text style={styles.currentAddressLabel}>Adresse actuelle:</Text>
+                  <Text style={styles.currentAddress} numberOfLines={2}>
+                    {formattedAddress}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Numéro du destinataire</Text>
+              <View style={styles.phoneContainer}>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={countryCode}
+                    onValueChange={(itemValue) => setCountryCode(itemValue)}
+                    style={styles.picker}
+                    dropdownIconColor="#000"
+                  >
+                    {CountryCode.map((country) => (
+                      <Picker.Item 
+                        key={country.code}
+                        label={`${country.flag} ${country.code} ${country.country}`}
+                        value={country.code}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+                <TextInput
+                  style={[
+                    styles.phoneInput,
+                    inputHasFocus === 'phone' && styles.inputFocused
+                  ]}
+                  value={recipientPhone}
+                  onChangeText={setRecipientPhone}
+                  placeholder="Numéro de téléphone"
+                  keyboardType="phone-pad"
+                  onFocus={() => setInputHasFocus('phone')}
+                  onBlur={() => setInputHasFocus(null)}
+                />
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.nextButtonContainer}>
+          <TouchableOpacity 
+            style={styles.nextButton}
+            onPress={handleNext}
+            disabled={loading || formProgress < 1}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.nextButtonText}>Continue</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Map Modal */}
+        <Modal
+          visible={showMap}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setShowMap(false)}
+        >
+          <LocationMap
+            initialLocation={location}
+            onLocationSelect={handleLocationSelect}
+            onClose={() => setShowMap(false)}
+          />
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 10,
-        backgroundColor: '#fff',
-        marginTop: 0,
-    },
-    inputContainer: {
-        marginBottom: 20,
-    },
-    label: {
-        marginBottom: 15,
-        fontSize: 16,
-        fontFamily: 'outfit',
-    },
-    input: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 10,
-    },
-    phoneContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    picker: {
-        height: 70,
-        width: 130,
-        marginRight: 10,
-    },
-    phoneInput: {
-        flex: 1,
-    },
-    button: {
-        padding: 20,
-        marginTop: 50,
-        backgroundColor: '#000',
-        borderRadius: 15,
-        borderWidth: 1,
-    },
-    buttonText: {
-        color: '#fff',
-        textAlign: 'center',
-    },
-    mapContainer: {
-        flex: 1,
-    },
-    map: {
-        flex: 1,
-    },
-    closeButton: {
-        position: 'absolute',
-        bottom: 20,
-        left: '50%',
-        transform: [{ translateX: -50 }],
-        backgroundColor: '#000',
-        padding: 10,
-        borderRadius: 5,
-    },
-    closeButtonText: {
-        color: '#fff',
-        textAlign: 'center',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f3f3',
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 12,
+    borderRadius: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  progressContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  progressBarBackground: {
+    height: 4,
+    backgroundColor: '#f3f3f3',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#000',
+    borderRadius: 2,
+  },
+  content: {
+    flex: 1,
+  },
+  formContainer: {
+    padding: 24,
+  },
+  inputContainer: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  inputFocused: {
+    borderColor: '#000',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addressInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+    minHeight: 80,
+  },
+  mapButton: {
+    backgroundColor: '#f3f3f3',
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    minHeight: 55,
+  },
+  currentAddressContainer: {
+    marginTop: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 10,
+  },
+  currentAddressLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+  },
+  currentAddress: {
+    fontSize: 12,
+    color: '#333',
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: 120,
+    backgroundColor: '#f9f9f9',
+  },
+  picker: {
+    height: 54,
+    width: '100%',
+  },
+  phoneInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    marginLeft: 8,
+    backgroundColor: '#f9f9f9',
+  },
+  nextButtonContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f3f3',
+  },
+  nextButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
 });
-
-export default Page3;

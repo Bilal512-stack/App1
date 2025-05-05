@@ -1,55 +1,71 @@
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import React from 'react';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
+import { Order } from '../../types/Order';
+import OrderCard from './OrderCard';
+import { doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig'; // Assurez-vous que ce chemin est correct
 
-interface Order {
-  senderName: string;
-  senderPhone: number;
-  recipientName: string;
-  recipientPhone: number;
-  recipientAddress: string;
-  senderAddress: string;
-  weight: number;
-  nature: string;
-  truckType: string;
+interface UserOrderListProps {
+  orderData: Order[];
+  onUpdateOrder?: (order: Order) => void;
+  onDeleteOrder?: (orderId: string) => void; // Changez le type pour l'ID de commande
 }
 
-export default function UserOrderList({ orderData }: { orderData: Order[] }) {
-  const handleOrderClick = (order: Order) => {
-    Alert.alert(
-      'Détails de la commande',
-      `Poids: ${order.weight}\nNature: ${order.nature}\nType de camion: ${order.truckType}\nAdresse expéditeur: ${order.senderAddress}\nNom expéditeur: ${order.senderName}\nTéléphone expéditeur: ${order.senderPhone}\nNom destinataire: ${order.recipientName}\nTéléphone destinataire: ${order.recipientPhone}\nAdresse destinataire: ${order.recipientAddress}\n`
-    );
+export default function UserOrderList({ 
+  orderData,
+  onUpdateOrder,
+  onDeleteOrder
+}: UserOrderListProps) {
+  
+  const handleEditOrder = (order: Order) => {
+    if (onUpdateOrder) {
+      onUpdateOrder(order);
+    } else {
+      Alert.alert(
+        'Modifier la commande',
+        'Cette action ouvrirait un formulaire pour modifier la commande.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    if (onDeleteOrder) {
+      await onDeleteOrder(orderId); // Passez l'ID de la commande
+    } else {
+      Alert.alert(
+        'Suppression',
+        'La commande a été supprimée.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   return (
-    <View>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
       {orderData.map((order, index) => (
-        <TouchableOpacity
+        <OrderCard
           key={index}
-          style={{
-            marginBottom: 20,
-            padding: 10,
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 5,
-          }}
-          onPress={() => handleOrderClick(order)} // Action au clic
-        >
-          <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
-            <Text style={{ color: 'red', fontSize: 14 }}>Crée</Text> {/* Texte "Crée" en rouge */}
-          </Text>
-          <Text>Date de création:</Text>
-          <Text>Poids: {order.weight}</Text>
-          <Text>Nature: {order.nature}</Text>
-          <Text>Type de Camion: {order.truckType}</Text>
-          <Text>Adresse de l'expediteur: {order.senderAddress}</Text>
-          <Text>Nom de l'expediteur: {order.senderName}</Text>
-          <Text>Numéro de l'expediteur: {order.senderPhone}</Text>
-          <Text>Nom du destinataire: {order.recipientName}</Text>
-          <Text>Numéro du destinataire: {order.recipientPhone}</Text>
-          <Text>Adresse du destinataire: {order.recipientAddress}</Text>
-        </TouchableOpacity>
+          order={order}
+          onEdit={handleEditOrder}
+          onDelete={handleDeleteOrder}
+        />
       ))}
-    </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    borderRadius: 10,
+  },
+  contentContainer: {
+    paddingHorizontal: 1.5,
+    paddingVertical: 10,
+  },
+});
