@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,15 +14,13 @@ import { Crosshair, Navigation } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
-  withSpring, 
   withTiming, 
-  withSequence,
-  Easing 
+  withSequence 
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
-const LATITUDE_DELTA = 0.005; // Smaller value = more zoomed in
+const LATITUDE_DELTA = 0.005;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 interface LocationMapProps {
@@ -45,10 +43,10 @@ export default function LocationMap({
   const [loading, setLoading] = useState<boolean>(false);
   const [gettingUserLocation, setGettingUserLocation] = useState<boolean>(false);
   
-  // Animation values
   const pinScale = useSharedValue(1);
   const addressOpacity = useSharedValue(0);
-  
+  const mapRef = useRef<MapView>(null); // Référence à la carte
+
   useEffect(() => {
     initializeMap();
   }, []);
@@ -57,7 +55,7 @@ export default function LocationMap({
     setLoading(true);
     try {
       let region;
-      
+
       if (initialLocation) {
         region = {
           latitude: initialLocation.latitude,
@@ -67,38 +65,28 @@ export default function LocationMap({
         };
         await getAddressFromCoordinates(initialLocation.latitude, initialLocation.longitude);
       } else {
-        // Get current user location
         const { status } = await Location.requestForegroundPermissionsAsync();
-        
+
         if (status === 'granted') {
-          setGettingUserLocation(true);
-          const position = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Highest
-          });
-          
+          const position = await Location.getCurrentPositionAsync();
           region = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             latitudeDelta: LATITUDE_DELTA,
             longitudeDelta: LONGITUDE_DELTA,
           };
-          
           await getAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
         } else {
-          // Default region if permission not granted
           region = {
-            latitude: 4.0511,  // Cameroon default (Yaoundé)
+            latitude: 4.0511,
             longitude: 9.7679,
             latitudeDelta: 0.1,
             longitudeDelta: 0.1,
           };
           setAddress('Location permission not granted');
         }
-        setGettingUserLocation(false);
       }
-      
       setMapRegion(region);
-      // Show address with animation
       addressOpacity.value = withTiming(1, { duration: 500 });
     } catch (error) {
       console.error('Error initializing map:', error);
@@ -107,26 +95,19 @@ export default function LocationMap({
       setLoading(false);
     }
   };
-  
+
   const getAddressFromCoordinates = async (latitude: number, longitude: number) => {
     try {
       setLoading(true);
-      
-      // Animate pin when getting address
       pinScale.value = withSequence(
         withTiming(1.2, { duration: 150 }),
         withTiming(1, { duration: 150 })
       );
+
+      const addressResult = await Location.reverseGeocodeAsync({ latitude, longitude });
       
-      // Get detailed address information
-      const addressResult = await Location.reverseGeocodeAsync(
-        { latitude, longitude }
-      );
-      
-      if (addressResult && addressResult.length > 0) {
+      if (addressResult.length > 0) {
         const addressObj = addressResult[0];
-        
-        // Format address with more detail
         const addressComponents = [
           addressObj.name,
           addressObj.street,
@@ -138,25 +119,22 @@ export default function LocationMap({
           addressObj.country
         ].filter(Boolean);
         
-        // Create a more detailed address string
         const formattedAddress = addressComponents.join(', ');
         setAddress(formattedAddress);
         return formattedAddress;
       } else {
         setAddress('Address not found');
-        return 'Address not found';
       }
     } catch (error) {
       console.error('Error getting address:', error);
       setAddress('Failed to get address');
-      return 'Failed to get address';
     } finally {
       setLoading(false);
     }
   };
-  
-  const handleRegionChangeComplete = async (region: Region) => {
-    const newAddress = await getAddressFromCoordinates(region.latitude, region.longitude);
+
+  const handleRegionChangeComplete = (region: Region) => {
+    // Ne pas appeler getAddressFromCoordinates ici pour éviter des appels multiples
     setMapRegion(region);
   };
   
@@ -167,40 +145,38 @@ export default function LocationMap({
         longitude: mapRegion.longitude,
         address: address
       });
+
+      // Zoomer sur la nouvelle position
+      mapRef.current?.animateToRegion({
+        latitude: mapRegion.latitude,
+        longitude: mapRegion.longitude,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
+      }, 1000);
     }
   };
-  
+
   const moveToUserLocation = async () => {
-    try {
-      setGettingUserLocation(true);
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      
-      if (status === 'granted') {
-        const position = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Highest
-        });
-        
-        if (mapRegion) {
-          const newRegion = {
-            ...mapRegion,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          };
-          
-          setMapRegion(newRegion);
-          await getAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
-        }
-      } else {
-        setAddress('Location permission not granted');
+    setGettingUserLocation(true);
+    const { status } = await Location.requestForegroundPermissionsAsync();
+
+    if (status === 'granted') {
+      const position = await Location.getCurrentPositionAsync();
+      if (mapRegion) {
+        const newRegion = {
+          ...mapRegion,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        setMapRegion(newRegion);
+        await getAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
       }
-    } catch (error) {
-      console.error('Error getting user location:', error);
-    } finally {
-      setGettingUserLocation(false);
+    } else {
+      setAddress('Location permission not granted');
     }
+    setGettingUserLocation(false);
   };
   
-  // Animated styles
   const animatedPinStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: pinScale.value }],
@@ -225,6 +201,7 @@ export default function LocationMap({
   return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         style={styles.map}
         region={mapRegion}
         onRegionChangeComplete={handleRegionChangeComplete}

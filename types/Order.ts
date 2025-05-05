@@ -9,4 +9,5 @@ export interface Order {
     weight: number;
     nature: string;
     truckType: string;
+    distance: number; // Distance optionnelle
   }

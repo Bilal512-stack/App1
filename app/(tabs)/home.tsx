@@ -7,6 +7,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import UserOrderList from '@/components/MyOrder/UserOrderList';
 
 type Order = {
+    id?: string; // ID de la commande, si nécessaire
     senderName: string;
     senderPhone: number;
     senderCountryCode: string;
@@ -43,6 +44,7 @@ const Home = () => {
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 orders.push({
+                    id: doc.id, // Ajoutez l'ID de la commande ici
                     senderName: data.senderName || '',
                     senderPhone: data.senderPhone || '',
                     senderCountryCode: data.senderCountryCode || '',
@@ -80,7 +82,7 @@ const Home = () => {
             </View>
             {loading && <ActivityIndicator size={'large'} color={'black'} />}
 
-            {orderData?.length === 0 ? <StartNewOrder /> : <UserOrderList orderData={orderData}/>}
+            {orderData?.length === 0 ? <StartNewOrder /> : <UserOrderList orderData={orderData} setOrderData={setOrderData} />}
         </View>
     );
 };

@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableHighlight, Alert } from 'react-native';
 import { Order } from '../../types/Order';
 import { doc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig'; // Assurez-vous que ce chemin est correct
+import { db } from '../../config/FirebaseConfig';
 
 interface OrderCardProps {
   order: Order;
   onEdit: (order: Order) => void;
-  onDelete: (orderId: string) => void; // Changez le type pour l'ID de commande
+  onDelete: (orderId: string) => void; // ID de commande
 }
 
 const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
@@ -44,7 +44,7 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
         },
         {
           text: 'Supprimer',
-          onPress: () => handleDelete(order.id), // Utilisez l'ID de la commande
+          onPress: () => handleDelete(order.id), // ID de la commande
           style: 'destructive',
         },
       ],
@@ -55,7 +55,7 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
   const showDetails = (order: Order) => {
     Alert.alert(
       'Détails de la commande',
-      `Poids: ${order.weight}\nNature: ${order.nature}\nType de camion: ${order.truckType}\nAdresse expéditeur: ${order.senderAddress}\nNom expéditeur: ${order.senderName}\nTéléphone expéditeur: ${order.senderPhone}\nNom destinataire: ${order.recipientName}\nTéléphone destinataire: ${order.recipientPhone}\nAdresse destinataire: ${order.recipientAddress}\n`,
+      `Poids: ${order.weight} tonnes \nNature: ${order.nature}\nType de camion: ${order.truckType}\nAdresse expéditeur: ${order.senderAddress}\nNom expéditeur: ${order.senderName}\nTéléphone expéditeur: ${order.senderPhone}\nNom destinataire: ${order.recipientName}\nTéléphone destinataire: ${order.recipientPhone}\nAdresse destinataire: ${order.recipientAddress}\nDistance: ${order.distance ? order.distance.toFixed(2) : 'Calculating...'} km`,
       [{ text: 'OK' }]
     );
   };
@@ -72,8 +72,6 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
   };
 
   const handleEdit = (order: Order) => {
-    // Supprimez la commande existante avant de rediriger
-    handleDelete(order.id);
     onEdit(order); // Appel à la fonction de rappel pour passer à l'étape de création
   };
 
@@ -92,8 +90,8 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
 
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>Poids:</Text>
-            <Text style={styles.value}>{order.weight}</Text>
+            <Text style={styles.label}> Poids:</Text>
+            <Text style={styles.value}>{order.weight} tonnes</Text>
           </View>
 
           <View style={styles.detailRow}>
@@ -104,6 +102,11 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
           <View style={styles.detailRow}>
             <Text style={styles.label}>Type de Camion:</Text>
             <Text style={styles.value}>{order.truckType}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Distance:</Text>
+            <Text style={styles.value}>{order.distance ? order.distance.toFixed(2) : 'Calculating...'} km</Text>
           </View>
           
           <View style={styles.section}>
