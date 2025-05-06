@@ -26,4 +26,3 @@ export const database = getDatabase(app);
 export const db = getFirestore(app);
 
 // Removed redundant export statement for 'db'
-

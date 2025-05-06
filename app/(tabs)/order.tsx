@@ -1,90 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
-import { Tabs, useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { db, auth } from '../../config/FirebaseConfig';
+import { ArrowLeft } from 'lucide-react-native'; // Ensure to import
 
 const Order = () => {
     const router = useRouter();
-    const [weight, setWeight] = useState(1); // Poids initialisé à 1
+    const [weight, setWeight] = useState(1);
     const [nature, setNature] = useState('');
-    const [truckType, setTruckType] = useState(''); // Type de camion par défaut
-    const [orders, setOrders] = useState<{ id: string; [key: string]: any }[]>([]);
+    const [truckType, setTruckType] = useState('');
+    const [formProgress, setFormProgress] = useState(0);
 
-    // Fonction pour enregistrer les données dans Firebase et naviguer vers Page2
+    // Update form progress when fields change
+    useEffect(() => {
+        let progress = 0;
+        if (weight) progress += 0.33;
+        if (nature) progress += 0.33;
+        if (truckType) progress += 0.34;
+        setFormProgress(progress);
+    }, [weight, nature, truckType]);
+
     const handleNext = async () => {
         const orderDetails = {
             weight,
             nature,
             truckType,
-            userEmail: auth.currentUser?.email, // Ajoutez l'email de l'utilisateur
+            userEmail: auth.currentUser?.email,
         };
 
         try {
-            const docRef = await addDoc(collection(db, 'orders'), orderDetails); // Enregistre les données dans Firebase
+            const docRef = await addDoc(collection(db, 'orders'), orderDetails);
             console.log('Commande enregistrée avec ID :', docRef.id);
-            router.push(`/create-order/page2?orderId=${docRef.id}`); // Passe l'ID de la commande à Page2
+            router.push(`/create-order/page2?orderId=${docRef.id}`);
         } catch (e) {
             console.error('Erreur lors de l\'enregistrement de la commande :', e);
             Alert.alert('Erreur', 'Impossible d\'enregistrer la commande.');
         }
     };
 
-    // Fonction pour récupérer les commandes existantes (optionnel)
-    const fetchOrders = async () => {
-        try {
-            const querySnapshot = await getDocs(collection(db, 'orders'));
-            const fetchedOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setOrders(fetchedOrders);
-            console.log('Commandes récupérées :', fetchedOrders);
-        } catch (e) {
-            console.error('Erreur lors de la récupération des commandes :', e);
-        }
-    };
-
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    // Incrémenter le poids
-    const incrementWeight = () => {
-        setWeight(prevWeight => prevWeight + 1);
-    };
-
-    // Décrémenter le poids
-    const decrementWeight = () => {
-        setWeight(prevWeight => (prevWeight > 1 ? prevWeight - 1 : 1)); // Ne pas descendre en dessous de 1
-    };
-
     return (
-        <>
-            <Tabs screenOptions={{
-                headerShown: false,
-                tabBarActiveTintColor: 'black',
-                headerStyle: { backgroundColor: '#fff' },
-            }}></Tabs>
-            <View style={{ padding: 5, paddingTop: 5, backgroundColor: '#fff' }}>
-                <TouchableOpacity>
-                    <Ionicons name="arrow-back" size={24} color="black"
-                        onPress={() => router.back()} style={{ marginTop: 50, marginLeft: 20 }} />
-                </TouchableOpacity>
-            </View>
-            <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
                 <View style={styles.header}>
-                    <Text style={styles.headerText}>Création de la Commande</Text>
+                    <TouchableOpacity 
+                        onPress={() => router.back()} 
+                        style={styles.backButton}
+                        activeOpacity={0.7}
+                    >
+                        <ArrowLeft size={20} color="#000"  />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Création de la Commande</Text>
                 </View>
 
-                <View>
+                {/* Progress Indicator */}
+                <View style={styles.progressContainer}>
+                    <View style={styles.progressBarBackground}>
+                        <View style={[styles.progressBarFill, { width: `${formProgress * 100}%` }]} />
+                    </View>
+                </View>
+
+                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Poids de la marchandise (tonnes)</Text>
                         <View style={styles.weightControls}>
-                            <TouchableOpacity onPress={decrementWeight} style={styles.button}>
+                            <TouchableOpacity onPress={() => setWeight(prev => Math.max(prev - 1, 1))} style={styles.button}>
                                 <Text style={styles.buttonText}>-</Text>
                             </TouchableOpacity>
                             <Text style={styles.weightDisplay}>{weight}</Text>
-                            <TouchableOpacity onPress={incrementWeight} style={styles.button}>
+                            <TouchableOpacity onPress={() => setWeight(prev => prev + 1)} style={styles.button}>
                                 <Text style={styles.buttonText}>+</Text>
                             </TouchableOpacity>
                         </View>
@@ -93,32 +82,33 @@ const Order = () => {
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Nature de la marchandise</Text>
                         <TextInput
-                            style={{ borderWidth: 1, borderColor: '#000', padding: 10, borderRadius: 5 }}
+                            style={styles.input}
                             value={nature}
                             onChangeText={setNature}
-                            placeholder="Entrez la nature de la marchandise" />
+                            placeholder="Entrez la nature de la marchandise"
+                        />
                     </View>
-                </View>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Type de camion</Text>
 
-                    <Picker
-                        selectedValue={truckType}
-                        style={styles.picker}
-                        onValueChange={(itemValue) => setTruckType(itemValue)}
-                    >
-                        <Picker.Item label="Camion frigorifique" value="Camion frigorifique" />
-                        <Picker.Item label="Camion à plateau" value="Camion à plateau" />
-                        <Picker.Item label="Camion à benne" value="Camion à benne" />
-                        <Picker.Item label="Camion-citerne" value="Camion-citerne" />
-                    </Picker>
-                </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Type de camion</Text>
+                        <Picker
+                            selectedValue={truckType}
+                            style={styles.picker}
+                            onValueChange={(itemValue) => setTruckType(itemValue)}
+                        >
+                            <Picker.Item label="Camion frigorifique" value="Camion frigorifique" />
+                            <Picker.Item label="Camion à plateau" value="Camion à plateau" />
+                            <Picker.Item label="Camion à benne" value="Camion à benne" />
+                            <Picker.Item label="Camion-citerne" value="Camion-citerne" />
+                        </Picker>
+                    </View>
 
-                <TouchableOpacity onPress={handleNext} style={styles.buttonNext}>
-                    <Text style={styles.buttonNextText}>Suivant</Text>
-                </TouchableOpacity>
-            </View>
-        </>
+                    <TouchableOpacity onPress={handleNext} style={styles.buttonNext}>
+                        <Text style={styles.buttonNextText}>Suivant</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 
@@ -130,10 +120,12 @@ const styles = StyleSheet.create({
         marginTop: 0,
     },
     header: {
-        backgroundColor: '#070707FF',
-        padding: 10,
-        borderRadius: 10,
-        marginBottom: 25,
+        flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f3f3',
     },
     headerText: {
         color: '#fff',
@@ -144,15 +136,50 @@ const styles = StyleSheet.create({
     inputContainer: {
         marginBottom: 20,
     },
-    label: {
-        padding: 10,
+
+    backButton: {
+        padding: 8,
+        marginRight: 12,
+        borderRadius: 8,
+},
+       headerTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+},
+
+    progressContainer: {
+        paddingHorizontal: 10,
         marginBottom: 20,
+    },
+    progressBarBackground: {
+        height: 1,
+        backgroundColor: '#f3f3f3',
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    progressBarFill: {
+        height: '100%',
+        backgroundColor: '#000',
+        borderRadius: 4,
+    },
+    content: {
+        flex: 1,
+    },
+
+    label: {
+        padding: 20,
+        marginBottom: 10,
         fontSize: 15,
-        fontFamily: 'outfit',
     },
     picker: {
         height: 50,
         width: '100%',
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#000',
+        padding: 10,
+        borderRadius: 5,
     },
     weightControls: {
         flexDirection: 'row',
@@ -171,19 +198,19 @@ const styles = StyleSheet.create({
     },
     weightDisplay: {
         fontSize: 18,
-        width: 50,
+        width: 40,
         textAlign: 'center',
     },
     buttonNext: {
         backgroundColor: '#000',
+        marginTop: 20,
+        paddingVertical: 15,
         padding: 10,
         borderRadius: 5,
         alignItems: 'center',
-        justifyContent: 'center',
     },
     buttonNextText: {
         fontSize: 17,
-        fontFamily: 'outfit',
         color: 'white',
         textAlign: 'center',
     },

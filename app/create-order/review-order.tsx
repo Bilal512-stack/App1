@@ -200,13 +200,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontFamily: 'outfit-Bold',
-        marginBottom: 20,
+        marginBottom: 10,
         textAlign: 'center',
     },
     distanceText: {
         fontSize: 18,
         fontWeight: '600',
-        marginVertical: 10,
+        padding: -0.5,
         textAlign: 'center',
     },
     row: {

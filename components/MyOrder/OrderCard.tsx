@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableHighlight, Alert } from 'react-native';
 import { Order } from '../../types/Order';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
+import axios from 'axios';
+import haversine from 'haversine';
+import { router } from 'expo-router';
 
 interface OrderCardProps {
   order: Order;
@@ -11,6 +14,53 @@ interface OrderCardProps {
 }
 
 const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
+  const [distance, setDistance] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const calculateDistance = async () => {
+      try {
+        const senderResponse = await axios.get(`https://api.opencagedata.com/geocode/v1/json`, {
+          params: {
+            q: order.senderAddress,
+            key: 'a02dfb9bc224455ea4a328978eba5a78'
+          }
+        });
+
+        const recipientResponse = await axios.get(`https://api.opencagedata.com/geocode/v1/json`, {
+          params: {
+            q: order.recipientAddress,
+            key: 'a02dfb9bc224455ea4a328978eba5a78'
+          }
+        });
+
+        const senderLocation = senderResponse.data.results[0]?.geometry;
+        const recipientLocation = recipientResponse.data.results[0]?.geometry;
+
+        if (senderLocation && recipientLocation) {
+          const senderCoords = {
+            latitude: senderLocation.lat,
+            longitude: senderLocation.lng
+          };
+          const recipientCoords = {
+            latitude: recipientLocation.lat,
+            longitude: recipientLocation.lng
+          };
+
+          const distanceInKm = haversine(senderCoords, recipientCoords, { unit: 'km' });
+          setDistance(distanceInKm);
+        }
+      } catch (error) {
+        console.error('Erreur lors du calcul de la distance:', error);
+        Alert.alert('Erreur', 'Impossible de calculer la distance.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    calculateDistance();
+  }, [order.senderAddress, order.recipientAddress]);
+
   const handlePress = () => {
     Alert.alert(
       'Options',
@@ -44,7 +94,7 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
         },
         {
           text: 'Supprimer',
-          onPress: () => handleDelete(order.id), // ID de la commande
+          onPress: () => handleDelete(order.id),
           style: 'destructive',
         },
       ],
@@ -52,27 +102,39 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
     );
   };
 
+  const formatDistance = (distance: number | null): string => {
+    if (distance === null) return 'En calcul...';
+    return distance > 0 ? `${distance.toFixed(1)} km` : 'Distance non disponible';
+  };
+
   const showDetails = (order: Order) => {
     Alert.alert(
       'Détails de la commande',
-      `Poids: ${order.weight} tonnes \nNature: ${order.nature}\nType de camion: ${order.truckType}\nAdresse expéditeur: ${order.senderAddress}\nNom expéditeur: ${order.senderName}\nTéléphone expéditeur: ${order.senderPhone}\nNom destinataire: ${order.recipientName}\nTéléphone destinataire: ${order.recipientPhone}\nAdresse destinataire: ${order.recipientAddress}\nDistance: ${order.distance ? order.distance.toFixed(2) : 'Calculating...'} km`,
+      `Poids: ${order.weight} tonnes \nNature: ${order.nature}\nType de camion: ${order.truckType}\nAdresse expéditeur: ${order.senderAddress}\nNom expéditeur: ${order.senderName}\nTéléphone expéditeur: ${order.senderPhone}\nNom destinataire: ${order.recipientName}\nTéléphone destinataire: ${order.recipientPhone}\nAdresse destinataire: ${order.recipientAddress}\nDistance: ${formatDistance(distance)}`,
       [{ text: 'OK' }]
     );
   };
 
   const handleDelete = async (orderId: string) => {
     try {
-      await deleteDoc(doc(db, 'orders', orderId)); // Supprimez la commande de la BD
+      await deleteDoc(doc(db, 'orders', orderId));
       Alert.alert('Commande supprimée', 'La commande a été supprimée avec succès.');
-      onDelete(orderId); // Appel à la fonction de rappel pour mettre à jour l'état dans le parent
+      onDelete(orderId);
     } catch (error) {
       console.error('Erreur lors de la suppression de la commande:', error);
       Alert.alert('Erreur', 'Échec de la suppression de la commande. Veuillez réessayer.');
     }
   };
 
-  const handleEdit = (order: Order) => {
-    onEdit(order); // Appel à la fonction de rappel pour passer à l'étape de création
+  const handleEdit = async (order: Order) => {
+    try {
+      await deleteDoc(doc(db, 'orders', order.id)); // Supprimez la commande existante
+      Alert.alert('Vous serez rediriger vers la page de creation de la commande .');
+      router.push('/(tabs)/order'); // Redirigez vers la page order.tsx
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la commande:', error);
+      Alert.alert('Erreur', 'Échec de la suppression de la commande. Veuillez réessayer.');
+    }
   };
 
   return (
@@ -106,7 +168,7 @@ const OrderCard = ({ order, onEdit, onDelete }: OrderCardProps) => {
           
           <View style={styles.detailRow}>
             <Text style={styles.label}>Distance:</Text>
-            <Text style={styles.value}>{order.distance ? order.distance.toFixed(2) : 'Calculating...'} km</Text>
+            <Text style={styles.value}>{formatDistance(distance)}</Text>
           </View>
           
           <View style={styles.section}>

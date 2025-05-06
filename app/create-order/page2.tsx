@@ -41,12 +41,12 @@ export default function Page2() {
       setLoading(true);
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        
+
         if (status === 'granted') {
           const currentLocation = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Highest,
           });
-          
+
           const newLocation = {
             latitude: currentLocation.coords.latitude,
             longitude: currentLocation.coords.longitude,
